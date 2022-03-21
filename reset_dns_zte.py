@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException, TimeoutException
 from loguru import logger
 from time import sleep
 
@@ -39,7 +40,11 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int):
 
         logger.info(f"Processing {router_ip}")
         driver = webdriver.Chrome(service=srv, options=op)
-        driver.get(router_url)
+        try:
+            driver.get(router_url)
+        except WebDriverException:
+            logger.warning(f"Connection to {router_ip} failed, skipping")
+            continue
 
         # Login
         username_field = driver.find_element(By.ID, "Frm_Username")
@@ -51,7 +56,11 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int):
         logger.info(f"Logged in")
 
         # Navigate to DNS settings page
-        WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.ID, "LANUrl"))
+        try:
+            WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.ID, "LANUrl"))
+        except TimeoutException:
+            logger.warning(f"Timed out waiting for LANUrl element, apparently login failed, skipping ...")
+            continue
         driver.find_element(By.ID, "LANUrl").click()
 
         WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.ID, "smDns"))
