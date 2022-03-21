@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from loguru import logger
+from time import sleep
 
 
 @click.group()
@@ -69,8 +70,10 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int):
                 octet_input.clear()
                 octet_input.send_keys(dns_servers[row - 1].split(".")[octet_id])
 
+        sleep(1)
         driver.find_element(By.ID, "Btn_apply_LocalDnsServer").click()
         logger.info(f"DNS settings were updated")
+        sleep(2)
         driver.close()
 
 
