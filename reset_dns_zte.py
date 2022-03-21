@@ -18,14 +18,15 @@ def cli():
 @click.option("-d", "--driver-path", type=click.Path(), help="Chromium driver path")
 @click.option("-r", "--routers", type=click.Path(), help="CSV file containing router data: ip, username, password")
 @click.option("--dns", help="Comma separated list of dns servers: 8.8.8.8,1.1.1.1")
-@click.option("--position", help="Start from line N in router-data file")
-def reset(driver_path: str, routers: str, dns: str, position: int):
-
+@click.option("--start-from", default=0, help="Start from line N in router-data file")
+def reset(driver_path: str, routers: str, dns: str, start_from: int):
     router_data = []
     with open(routers) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=",")
         for row in csv_reader:
             router_data.append(row)
+
+    router_data = router_data[start_from:]
 
     srv = Service(driver_path)
     op = webdriver.ChromeOptions()
@@ -66,7 +67,7 @@ def reset(driver_path: str, routers: str, dns: str, position: int):
             for octet_id in range(4):
                 octet_input = driver.find_element(By.ID, f"sub_SerIPAddress{row}{octet_id}")
                 octet_input.clear()
-                octet_input.send_keys(dns_servers[row-1].split(".")[octet_id])
+                octet_input.send_keys(dns_servers[row - 1].split(".")[octet_id])
 
         driver.find_element(By.ID, "Btn_apply_LocalDnsServer").click()
         logger.info(f"DNS settings were updated")

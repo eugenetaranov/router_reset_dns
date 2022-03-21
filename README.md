@@ -17,3 +17,4 @@ pip3 install click
 ```shell
 ./reset_dns_zte.py reset --driver-path ~/Downloads/chromedriver_mac64_m1/chromedriver --routers routers.csv --dns 8.8.8.8,1.1.1.1
 ```
+Optinally, you can set `--start-from` which effectively skips any preceeding items in the routers file. 
