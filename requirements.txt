@@ -1,0 +1,5 @@
+click==8.0.4
+loguru==0.6.0
+PyYAML==6.0
+webdriver-manager==3.5.4
+selenium==4.1.3
