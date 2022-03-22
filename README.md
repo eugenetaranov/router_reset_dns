@@ -1,19 +1,24 @@
 1. Install python3
 
-2. Install dependencies:
+2. Create virtual env:
 ```shell
-pip3 install selenium
-pip3 install click
+python3 -m venv venv 
+source venv/bin/activate
 ```
 
-3. Install driver for chrome browser from http://chromedriver.chromium.org/downloads
+3. Install dependencies:
+```shell
+pip3 install -r requirements.txt
+```
 
-4. Create a csv file with routers data:
+4. Install driver for chrome browser from http://chromedriver.chromium.org/downloads
+
+5. Create a csv file with routers data:
 ```csv
 192.168.0.1,admin,password,ZTE_F612
 ```
 
-5. Add/Update router settings, if needed to config.yaml. It describes steps needed to login, navigate to DNS settings page and update settings.
+6. Add/Update router settings, if needed to config.yaml. It describes steps needed to login, navigate to DNS settings page and update settings.
 
 7. Run:
 ```shell
