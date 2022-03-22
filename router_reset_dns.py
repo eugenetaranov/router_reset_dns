@@ -7,7 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.common.exceptions import WebDriverException, TimeoutException, NoSuchElementException
 from loguru import logger
 from time import sleep
 
@@ -53,7 +53,13 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
         # Login
         if cfg["routers"][model]["login"]["username"]["type"] == "id":
-            username_field = driver.find_element(By.ID, cfg["routers"][model]["login"]["username"]["location"])
+            try:
+                username_field = driver.find_element(By.ID, cfg["routers"][model]["login"]["username"]["location"])
+            except NoSuchElementException:
+                driver.close()
+                logger.error(f"Username field was not found, skipping ...")
+                continue
+
             username_field.send_keys(router_username)
 
         if cfg["routers"][model]["login"]["password"]["type"] == "id":
@@ -95,20 +101,20 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
         for dns_idx in range(2):
             if cfg["routers"][model]["dns"]["split_octets"]:
                 octets = dns_servers[dns_idx].split(".")
-                for idx, loc in enumerate(cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["location"]):
-                    if cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["type"] == "id":
+                for idx, loc in enumerate(cfg["routers"][model]["dns"][f"dns_{dns_idx + 1}"]["location"]):
+                    if cfg["routers"][model]["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
                         WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.ID, loc))
                         octet_input = driver.find_element(By.ID, loc)
                         octet_input.clear()
                         octet_input.send_keys(octets[idx])
             else:
-                loc = cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["location"]
-                if cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["type"] == "id":
+                loc = cfg["routers"][model]["dns"][f"dns_{dns_idx + 1}"]["location"]
+                if cfg["routers"][model]["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
                     WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.ID, loc))
                     octet_input = driver.find_element(By.ID, loc)
                     octet_input.clear()
                     octet_input.send_keys(dns_servers[dns_idx])
-                if cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["type"] == "xpath":
+                if cfg["routers"][model]["dns"][f"dns_{dns_idx + 1}"]["type"] == "xpath":
                     WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, loc))
                     octet_input = driver.find_element(By.XPATH, loc)
                     octet_input.clear()
