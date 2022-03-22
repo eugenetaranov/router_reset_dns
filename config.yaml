@@ -65,3 +65,33 @@ routers:
       submit:
         type: id
         location: Btn_Submit
+  Airocon:
+    login:
+      username:
+        type: id
+        location: username
+      password:
+        type: id
+        location: password
+      submit:
+        type: id
+        location: loginBtn
+    steps:
+    - type: xpath
+      location: '/html/body/div/div[1]/div[2]/ul/li[3]/a'
+    - type: xpath
+      location: '//*[@id="side"]/li[2]/h3/a'
+    - type: xpath
+      location: '/html/body/div/div[2]/div[1]/div[1]/div/ul/li[2]/ul/li[2]/a'
+    dns:
+      iframe: contentIframe
+      split_octets: false
+      dns_1:
+        type: xpath
+        location: '//*[@id="manual_dns1"]/td/input'
+      dns_2:
+        type: xpath
+        location: '//*[@id="manual_dns2"]/td/input'
+      submit:
+        type: xpath
+        location: '/html/body/form/div[5]/div/input[1]'

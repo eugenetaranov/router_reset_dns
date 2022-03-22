@@ -88,6 +88,10 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
         # Update DNS settings
         logger.info(f"Updating DNS server settings")
+
+        if "iframe" in cfg["routers"][model]["dns"].keys():
+            driver.switch_to.frame(cfg["routers"][model]["dns"]["iframe"])
+
         for dns_idx in range(2):
             if cfg["routers"][model]["dns"]["split_octets"]:
                 octets = dns_servers[dns_idx].split(".")
@@ -113,6 +117,9 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
         sleep(1)
         if cfg["routers"][model]["dns"]["submit"]["type"] == "id":
             driver.find_element(By.ID, cfg["routers"][model]["dns"]["submit"]["location"]).click()
+
+        if cfg["routers"][model]["dns"]["submit"]["type"] == "xpath":
+            driver.find_element(By.XPATH, cfg["routers"][model]["dns"]["submit"]["location"]).click()
 
         logger.info(f"DNS settings were updated")
         sleep(3)
