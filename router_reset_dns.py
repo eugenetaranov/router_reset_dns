@@ -66,10 +66,15 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
         logger.info(f"Logged in")
 
         # Navigate to DNS settings page
+        if "iframe" in cfg["routers"][model].keys():
+            driver.switch_to.frame(cfg["routers"][model]["iframe"])
+
         for step in cfg["routers"][model]["steps"]:
             try:
                 if step["type"] == "id":
                     WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.ID, step["location"]))
+                if step["type"] == "xpath":
+                    WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.XPATH, step["location"]))
             except TimeoutException:
                 driver.close()
                 logger.warning(f"Element {step['location']} was not found, skipping router ...")
@@ -77,6 +82,9 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
             if step["type"] == "id":
                 driver.find_element(By.ID, step["location"]).click()
+
+            if step["type"] == "xpath":
+                driver.find_element(By.XPATH, step["location"]).click()
 
         # Update DNS settings
         logger.info(f"Updating DNS server settings")
@@ -89,6 +97,18 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
                         octet_input = driver.find_element(By.ID, loc)
                         octet_input.clear()
                         octet_input.send_keys(octets[idx])
+            else:
+                loc = cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["location"]
+                if cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["type"] == "id":
+                    WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.ID, loc))
+                    octet_input = driver.find_element(By.ID, loc)
+                    octet_input.clear()
+                    octet_input.send_keys(dns_servers[dns_idx])
+                if cfg["routers"][model]["dns"][f"dns_{dns_idx+1}"]["type"] == "xpath":
+                    WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, loc))
+                    octet_input = driver.find_element(By.XPATH, loc)
+                    octet_input.clear()
+                    octet_input.send_keys(dns_servers[dns_idx])
 
         sleep(1)
         if cfg["routers"][model]["dns"]["submit"]["type"] == "id":

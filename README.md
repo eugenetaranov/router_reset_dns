@@ -6,15 +6,18 @@ pip3 install selenium
 pip3 install click
 ```
 
-4. Install driver for chrome browser from http://chromedriver.chromium.org/downloads
+3. Install driver for chrome browser from http://chromedriver.chromium.org/downloads
 
-5. Create a csv file with routers data:
+4. Create a csv file with routers data:
 ```csv
-"95.152.40.204","admin","password"
+192.168.0.1,admin,password,ZTE_F612
 ```
 
-4. Run:
+5. Add/Update router settings, if needed to config.yaml. It describes steps needed to login, navigate to DNS settings page and update settings.
+
+7. Run:
 ```shell
-./reset_dns_zte.py reset --driver-path ~/Downloads/chromedriver_mac64_m1/chromedriver --routers routers.csv --dns 8.8.8.8,1.1.1.1
+./router_reset_dns.py reset --driver-path ~/Downloads/chromedriver_mac64_m1/chromedriver --routers routers.csv --dns 8.8.8.8,1.1.1.1  --config config.yaml
+
 ```
 Optinally, you can set `--start-from` which effectively skips any preceeding items in the routers file. 

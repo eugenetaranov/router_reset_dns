@@ -1,0 +1,67 @@
+---
+routers:
+  ZTE_ZXHN_H298A:
+    login:
+      username:
+        type: id
+        location: Frm_Username
+      password:
+        type: id
+        location: Frm_Password
+      submit:
+        type: id
+        location: LoginId
+    steps:
+    - type: id
+      location: LANUrl
+    - type: id
+      location: smDns
+    - type: id
+      location: LocalDnsServerBar
+    dns:
+      split_octets: true
+      dns_1:
+        type: id
+        location:
+        - sub_SerIPAddress10
+        - sub_SerIPAddress11
+        - sub_SerIPAddress12
+        - sub_SerIPAddress13
+      dns_2:
+        type: id
+        location:
+        - sub_SerIPAddress20
+        - sub_SerIPAddress21
+        - sub_SerIPAddress22
+        - sub_SerIPAddress23
+      submit:
+        type: id
+        location: Btn_apply_LocalDnsServer
+  ZTE_F612:
+    login:
+      username:
+        type: id
+        location: Frm_Username
+      password:
+        type: id
+        location: Frm_Password
+      submit:
+        type: id
+        location: LoginId
+    iframe: mainFrame
+    steps:
+    - type: id
+      location: mmNet
+    - type: xpath
+      location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[9]'
+    dns:
+      split_octets: false
+      dns_1:
+        type: id
+        location: Frm_DNSServer1
+      dns_2:
+        type: id
+        location: Frm_DNSServer2
+      submit:
+        type: id
+        location: Btn_Submit
