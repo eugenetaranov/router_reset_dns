@@ -43,6 +43,7 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int):
         try:
             driver.get(router_url)
         except WebDriverException:
+            driver.close()
             logger.warning(f"Connection to {router_ip} failed, skipping")
             continue
 
@@ -59,6 +60,7 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int):
         try:
             WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.ID, "LANUrl"))
         except TimeoutException:
+            driver.close()
             logger.warning(f"Timed out waiting for LANUrl element, apparently login failed, skipping ...")
             continue
         driver.find_element(By.ID, "LANUrl").click()
