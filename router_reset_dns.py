@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+from typing import Optional
 
 import click
 import csv
 import yaml
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -29,24 +31,206 @@ def map_model(cfg: dict, router_model: str) -> str:
     return ""
 
 
-def waiter(driver: object, find_by: str, loc: str) -> bool:
-    """waiter for elements"""
-    try:
-        if find_by == "id":
-            WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.ID, loc))
-        elif find_by == "xpath":
-            WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, loc))
-    except TimeoutException:
-        driver.close()
-        logger.warning(f"Timed out waiting for {loc} element, apparently login failed, skipping ...")
-        return False
-
-    return True
-
-
 class Router:
-    def __init__(self):
-        pass
+    def __init__(self,
+                 cfg: dict,
+                 router_ip: str,
+                 router_port: str,
+                 router_user: str,
+                 router_password: str,
+                 dns_servers: list,
+                 driver_srv: Optional[Service],
+                 driver_options: Optional[Options],
+                 ) -> None:
+        self.cfg = cfg
+        self.router_ip = router_ip
+        self.router_port = router_port
+        self.router_user = router_user
+        self.router_password = router_password
+        self.dns_servers = dns_servers
+        if self.router_port == "443":
+            self.router_proto = "https"
+        else:
+            self.router_proto = "http"
+        self.router_url = f"{self.router_proto}://{self.router_ip}:{self.router_port}"
+        self.driver = webdriver.Chrome(service=driver_srv, options=driver_options)
+        self.driver.set_page_load_timeout(60)
+
+    def _waiter(self, element: dict) -> bool:
+        """waiter for elements"""
+        type = element["type"]
+        loc = element["location"]
+        try:
+            if type == "id":
+                WebDriverWait(self.driver, timeout=30).until(lambda d: d.find_element(By.ID, loc))
+            elif type == "xpath":
+                WebDriverWait(self.driver, timeout=30).until(lambda d: d.find_element(By.XPATH, loc))
+        except TimeoutException:
+            logger.warning(f"Timed out waiting for {loc} element, apparently login failed, skipping ...")
+            return False
+
+        return True
+
+    def process(self) -> bool:
+        res = self.do_login()
+        if not res:
+            return False
+
+        res = self.open_dns_page()
+        if not res:
+            return False
+
+        res = self.update_dns_settings()
+        if not res:
+            return False
+
+        return True
+
+    def do_login(self) -> bool:
+        try:
+            self.driver.get(self.router_url)
+        except WebDriverException:
+            self.driver.close()
+            logger.warning(f"Connection to {self.router_ip} failed, skipping...")
+            return False
+
+        w = self._waiter(element=self.cfg["login"]["username"])
+        if not w:
+            logger.warning(
+                f"Timed out waiting for {self.cfg['login']['username']['location']}, skipping...")
+            return False
+
+        if self.cfg["login"]["username"]["type"] == "id":
+            try:
+                username_field = self.driver.find_element(By.ID,
+                                                          self.cfg["login"]["username"]["location"])
+            except NoSuchElementException:
+                logger.error(f"Username field was not found, skipping ...")
+                return False
+
+            username_field.send_keys(self.router_user)
+
+        elif self.cfg["login"]["username"]["type"] == "xpath":
+            try:
+                username_field = self.driver.find_element(By.XPATH,
+                                                          self.cfg["login"]["username"]["location"])
+            except NoSuchElementException:
+                logger.error(f"Username field was not found, skipping ...")
+                return False
+
+            username_field.send_keys(self.router_user)
+
+        if self.cfg["login"]["password"]["type"] == "id":
+            password_field = self.driver.find_element(By.ID, self.cfg["login"]["password"]["location"])
+            password_field.send_keys(self.router_password)
+
+        elif self.cfg["login"]["password"]["type"] == "xpath":
+            password_field = self.driver.find_element(By.XPATH, self.cfg["login"]["password"]["location"])
+            password_field.send_keys(self.router_password)
+
+        if self.cfg["login"]["submit"]["type"] == "id":
+            self.driver.find_element(By.ID, self.cfg["login"]["submit"]["location"]).click()
+
+        elif self.cfg["login"]["submit"]["type"] == "xpath":
+            self.driver.find_element(By.XPATH, self.cfg["login"]["submit"]["location"]).click()
+
+        sleep(2)
+        # check if login was successful
+        if "check_login" in self.cfg["login"]:
+            if "iframe" in self.cfg["login"]["check_login"].keys():
+                self.driver.switch_to.frame(self.cfg["login"]["check_login"]["iframe"])
+
+            w = self._waiter(element=self.cfg["login"]["check_login"])
+            if not w:
+                logger.error(f"Login failed, skipping...")
+                return False
+
+            if "iframe" in self.cfg["login"].keys():
+                self.driver.switch_to.parent_frame()
+
+        logger.info(f"Logged in")
+        return True
+
+    def open_dns_page(self) -> bool:
+        if "iframe" in self.cfg.keys():
+            self.driver.switch_to.frame(self.cfg["iframe"])
+
+        for step in self.cfg["steps"]:
+            w = self._waiter(element=step)
+            if not w:
+                logger.error(f"Element {step['location']} was not found, skipping router...")
+                return False
+
+            if step["type"] == "id":
+                try:
+                    self.driver.find_element(By.ID, step["location"]).click()
+                except TimeoutException:
+                    logger.error(f"Timed out waiting for step {step['location']}, skipping...")
+                    return False
+
+            elif step["type"] == "xpath":
+                try:
+                    self.driver.find_element(By.XPATH, step["location"]).click()
+                except TimeoutException:
+                    logger.error(f"Timed out waiting for step {step['location']}, skipping...")
+                    return False
+        return True
+
+    def update_dns_settings(self) -> bool:
+        logger.info(f"Updating DNS server settings")
+
+        if "iframe" in self.cfg["dns"].keys():
+            self.driver.switch_to.frame(self.cfg["dns"]["iframe"])
+
+        for dns_idx in range(2):
+            if self.cfg["dns"]["split_octets"]:
+                octets = self.dns_servers[dns_idx].split(".")
+
+                for idx, loc in enumerate(self.cfg["dns"][f"dns_{dns_idx + 1}"]["location"]):
+                    w = self._waiter(element=self.cfg["dns"][f"dns_{dns_idx + 1}"])
+                    if not w:
+                        return False
+
+                    if self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
+                        octet_input = self.driver.find_element(By.ID, loc)
+                        octet_input.clear()
+                        octet_input.send_keys(octets[idx])
+
+                    elif self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "xpath":
+                        octet_input = self.driver.find_element(By.XPATH, loc)
+                        octet_input.clear()
+                        octet_input.send_keys(octets[idx])
+
+            else:
+                loc = self.cfg["dns"][f"dns_{dns_idx + 1}"]["location"]
+                w = self._waiter(element=self.cfg["dns"][f"dns_{dns_idx + 1}"])
+                if not w:
+                    return False
+
+                if self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
+                    octet_input = self.driver.find_element(By.ID, loc)
+                    octet_input.clear()
+                    octet_input.send_keys(self.dns_servers[dns_idx])
+
+                elif self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "xpath":
+                    octet_input = self.driver.find_element(By.XPATH, loc)
+                    octet_input.clear()
+                    octet_input.send_keys(self.dns_servers[dns_idx])
+
+        sleep(1)
+        w = self._waiter(element=self.cfg["dns"]["submit"])
+        if not w:
+            return False
+
+        if self.cfg["dns"]["submit"]["type"] == "id":
+            self.driver.find_element(By.ID, self.cfg["dns"]["submit"]["location"]).click()
+
+        elif self.cfg["dns"]["submit"]["type"] == "xpath":
+            self.driver.find_element(By.XPATH, self.cfg["dns"]["submit"]["location"]).click()
+
+        logger.info(f"DNS settings were updated")
+        sleep(3)
+        return True
 
 
 @cli.command()
@@ -57,200 +241,44 @@ class Router:
 @click.option("-c", "--config", type=click.Path(), help="Config file, yaml")
 @click.option("--skip-header/--no-skip-header", default=False)
 def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool):
-    router_data = []
+    routers_data = []
     with open(routers) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=";")
         if skip_header:
             next(csv_reader)  # skip header
         for row in csv_reader:
-            router_data.append(row)
+            routers_data.append(row)
 
-    logger.debug(router_data)
     with open(config, "r") as f:
         cfg = yaml.safe_load(f)
 
-    router_data = router_data[start_from:]
+    routers_data = routers_data[start_from:]
     srv = Service(driver_path)
     op = webdriver.ChromeOptions()
 
-    for r in router_data:
-        router_ip = r[0]
-        router_port = r[1]
-        try:
-            router_username, router_password = r[4].split(":")
-        except (ValueError, IndexError):
-            logger.warning(f"Unable to parse login/password {r[4]}, skipping ...")
-            continue
-        model = r[5]
-        if router_port == "443":
-            router_proto = "https"
-        else:
-            router_proto = "http"
-
+    for router_data in routers_data:
+        model = router_data[5]
         group_model = map_model(cfg=cfg["models"], router_model=model)
         if not group_model:
-            logger.warning(f"Model {model} for {router_ip} was not found in configured models, skipping ...")
+            logger.warning(f"Model {model} for {router_data[0]} was not found in configured models, skipping ...")
             continue
-
-        dns_servers = dns.split(",")
-        router_url = f"{router_proto}://{router_ip}:{router_port}"
-
-        logger.info(f"Processing {router_ip}")
-        driver = webdriver.Chrome(service=srv, options=op)
-        driver.set_page_load_timeout(60)
         try:
-            driver.get(router_url)
-        except WebDriverException:
-            driver.close()
-            logger.warning(f"Connection to {router_ip} failed, skipping")
+            router_user, router_password = router_data[4].split(":")
+        except (ValueError, IndexError):
+            logger.warning(f"Unable to parse login/password {router_data[4]}, skipping ...")
             continue
 
-        # Login
-        if cfg["routers"][group_model]["login"]["username"]["type"] == "id":
-            w = waiter(driver=driver, find_by="id", loc=cfg["routers"][group_model]["login"]["username"]["location"])
-            if not w:
-                logger.warning(f"Timed out waiting for {cfg['routers'][group_model]['login']['username']['location']}, skipping...")
-                continue
-
-            try:
-                username_field = driver.find_element(By.ID,
-                                                     cfg["routers"][group_model]["login"]["username"]["location"])
-            except NoSuchElementException:
-                driver.close()
-                logger.error(f"Username field was not found, skipping ...")
-                continue
-
-            username_field.send_keys(router_username)
-
-        elif cfg["routers"][group_model]["login"]["username"]["type"] == "xpath":
-            w = waiter(driver=driver, find_by="xpath", loc=cfg["routers"][group_model]["login"]["username"]["location"])
-            if not w:
-                logger.warning(f"Timed out waiting for {cfg['routers'][group_model]['login']['username']['location']}, skipping...")
-                continue
-
-            try:
-                username_field = driver.find_element(By.XPATH,
-                                                     cfg["routers"][group_model]["login"]["username"]["location"])
-            except NoSuchElementException:
-                driver.close()
-                logger.error(f"Username field was not found, skipping ...")
-                continue
-
-            username_field.send_keys(router_username)
-
-        if cfg["routers"][group_model]["login"]["password"]["type"] == "id":
-            password_field = driver.find_element(By.ID, cfg["routers"][group_model]["login"]["password"]["location"])
-            password_field.send_keys(router_password)
-
-        elif cfg["routers"][group_model]["login"]["password"]["type"] == "xpath":
-            password_field = driver.find_element(By.XPATH, cfg["routers"][group_model]["login"]["password"]["location"])
-            password_field.send_keys(router_password)
-
-        if cfg["routers"][group_model]["login"]["submit"]["type"] == "id":
-            driver.find_element(By.ID, cfg["routers"][group_model]["login"]["submit"]["location"]).click()
-
-        elif cfg["routers"][group_model]["login"]["submit"]["type"] == "xpath":
-            driver.find_element(By.XPATH, cfg["routers"][group_model]["login"]["submit"]["location"]).click()
-
-        sleep(2)
-        # check if login worked
-        if "check_login" in cfg["routers"][group_model]["login"]:
-            if "iframe" in cfg["routers"][group_model]["login"]["check_login"].keys():
-                driver.switch_to.frame(cfg["routers"][group_model]["login"]["check_login"]["iframe"])
-
-            w = waiter(driver=driver, find_by=cfg["routers"][group_model]["login"]["check_login"]["type"],
-                       loc=cfg["routers"][group_model]["login"]["check_login"]["location"])
-
-            if not w:
-                logger.error(f"Login failed, skipping...")
-                continue
-
-            if "iframe" in cfg["routers"][group_model]["login"].keys():
-                driver.switch_to.parent_frame()
-
-        logger.info(f"Logged in")
-
-        # Navigate to DNS settings page
-        if "iframe" in cfg["routers"][group_model].keys():
-            driver.switch_to.frame(cfg["routers"][group_model]["iframe"])
-
-        for step in cfg["routers"][group_model]["steps"]:
-            try:
-                if step["type"] == "id":
-                    WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.ID, step["location"]))
-                if step["type"] == "xpath":
-                    WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.XPATH, step["location"]))
-            except TimeoutException:
-                driver.close()
-                logger.warning(f"Element {step['location']} was not found, skipping router ...")
-                continue
-
-            if step["type"] == "id":
-                try:
-                    driver.find_element(By.ID, step["location"]).click()
-                except TimeoutException:
-                    driver.close()
-                    logger.error(f"Timed out waiting for step {step['location']}, skipping...")
-                    continue
-            if step["type"] == "xpath":
-                try:
-                    driver.find_element(By.XPATH, step["location"]).click()
-                except TimeoutException:
-                    driver.close()
-                    logger.error(f"Timed out waiting for step {step['location']}, skipping...")
-                    continue
-                driver.find_element(By.XPATH, step["location"]).click()
-
-        # Update DNS settings
-        logger.info(f"Updating DNS server settings")
-
-        if "iframe" in cfg["routers"][group_model]["dns"].keys():
-            driver.switch_to.frame(cfg["routers"][group_model]["dns"]["iframe"])
-
-        for dns_idx in range(2):
-            if cfg["routers"][group_model]["dns"]["split_octets"]:
-                octets = dns_servers[dns_idx].split(".")
-                for idx, loc in enumerate(cfg["routers"][group_model]["dns"][f"dns_{dns_idx + 1}"]["location"]):
-                    if cfg["routers"][group_model]["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
-                        w = waiter(driver=driver, find_by="id", loc=loc)
-                        if not w:
-                            continue
-                        octet_input = driver.find_element(By.ID, loc)
-                        octet_input.clear()
-                        octet_input.send_keys(octets[idx])
-            else:
-                loc = cfg["routers"][group_model]["dns"][f"dns_{dns_idx + 1}"]["location"]
-                if cfg["routers"][group_model]["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
-                    w = waiter(driver=driver, find_by="id", loc=loc)
-                    if not w:
-                        continue
-                    octet_input = driver.find_element(By.ID, loc)
-                    octet_input.clear()
-                    octet_input.send_keys(dns_servers[dns_idx])
-                if cfg["routers"][group_model]["dns"][f"dns_{dns_idx + 1}"]["type"] == "xpath":
-                    w = waiter(driver=driver, find_by="xpath", loc=loc)
-                    if not w:
-                        continue
-                    octet_input = driver.find_element(By.XPATH, loc)
-                    octet_input.clear()
-                    octet_input.send_keys(dns_servers[dns_idx])
-
-        sleep(1)
-        if cfg["routers"][group_model]["dns"]["submit"]["type"] == "id":
-            w = waiter(driver=driver, find_by="id", loc=cfg["routers"][group_model]["dns"]["submit"]["location"])
-            if not w:
-                continue
-            driver.find_element(By.ID, cfg["routers"][group_model]["dns"]["submit"]["location"]).click()
-
-        if cfg["routers"][group_model]["dns"]["submit"]["type"] == "xpath":
-            w = waiter(driver=driver, find_by="xpath", loc=cfg["routers"][group_model]["dns"]["submit"]["location"])
-            if not w:
-                continue
-            driver.find_element(By.XPATH, cfg["routers"][group_model]["dns"]["submit"]["location"]).click()
-
-        logger.info(f"DNS settings were updated")
-        sleep(3)
-        driver.close()
+        router = Router(
+            cfg=cfg["routers"][group_model],
+            router_ip=router_data[0],
+            router_port=router_data[1],
+            router_user=router_user,
+            router_password=router_password,
+            dns_servers=dns.split(","),
+            driver_srv=srv,
+            driver_options=op,
+        )
+        router.process()
 
 
 if __name__ == "__main__":
