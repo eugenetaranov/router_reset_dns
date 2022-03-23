@@ -33,9 +33,9 @@ def waiter(driver: object, find_by: str, loc: str) -> bool:
     """waiter for elements"""
     try:
         if find_by == "id":
-            WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.ID, loc))
+            WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.ID, loc))
         elif find_by == "xpath":
-            WebDriverWait(driver, timeout=5).until(lambda d: d.find_element(By.XPATH, loc))
+            WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, loc))
     except TimeoutException:
         driver.close()
         logger.warning(f"Timed out waiting for {loc} element, apparently login failed, skipping ...")
@@ -102,6 +102,11 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
         # Login
         if cfg["routers"][group_model]["login"]["username"]["type"] == "id":
+            w = waiter(driver=driver, find_by="id", loc=cfg["routers"][group_model]["login"]["username"]["location"])
+            if not w:
+                logger.warning(f"Timed out waiting for {cfg['routers'][group_model]['login']['username']['location']}, skipping...")
+                continue
+
             try:
                 username_field = driver.find_element(By.ID,
                                                      cfg["routers"][group_model]["login"]["username"]["location"])
