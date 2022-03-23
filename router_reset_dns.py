@@ -44,6 +44,11 @@ def waiter(driver: object, find_by: str, loc: str) -> bool:
     return True
 
 
+class Router:
+    def __init__(self):
+        pass
+
+
 @cli.command()
 @click.option("-d", "--driver-path", type=click.Path(), help="Chromium driver path")
 @click.option("-r", "--routers", type=click.Path(), help="CSV file containing router data")
@@ -92,7 +97,7 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
         logger.info(f"Processing {router_ip}")
         driver = webdriver.Chrome(service=srv, options=op)
-        driver.set_page_load_timeout(20)
+        driver.set_page_load_timeout(60)
         try:
             driver.get(router_url)
         except WebDriverException:
