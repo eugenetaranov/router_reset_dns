@@ -93,10 +93,10 @@ routers:
       submit:
         type: id
         location: LoginId
-      check_login:
-        iframe: mainFrame
-        type: xpath
-        location: //*[contains(text(),'Logout')]
+#      check_login:
+#        iframe: mainFrame
+#        type: xpath
+#        location: //*[contains(text(),'Logout')]
     iframe: mainFrame
     steps:
     - type: id
@@ -135,6 +135,13 @@ routers:
     dns:
       iframe: contentIframe
       split_octets: false
+      check_dhcp_mode:
+        type: xpath
+        location: '/html/body/form/div[3]/table/tbody/tr[7]/td/select'
+      update_dhcp_mode:
+        type: xpath
+        location: '/html/body/form/div[3]/table/tbody/tr[7]/td/select'
+        value: Manual
       dns_1:
         type: xpath
         location: '//*[@id="manual_dns1"]/td/input'

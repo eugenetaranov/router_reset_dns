@@ -9,6 +9,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
 from selenium.common.exceptions import WebDriverException, TimeoutException, NoSuchElementException
 from loguru import logger
 from time import sleep
@@ -176,11 +177,30 @@ class Router:
                     return False
         return True
 
+    def set_dhcp_mode(self):
+        w = self._waiter(element=self.cfg["dns"]["check_dhcp_mode"])
+        if not w:
+            return False
+
+        if "check_dhcp_mode" in self.cfg["dns"]:
+            if self.cfg["dns"]["check_dhcp_mode"]["type"] == "id":
+                dhcp_mode = self.driver.find_element(By.ID, self.cfg["dns"]["check_dhcp_mode"]["location"])
+
+            elif self.cfg["dns"]["check_dhcp_mode"]["type"] == "xpath":
+                dhcp_mode = self.driver.find_element(By.XPATH, self.cfg["dns"]["check_dhcp_mode"]["location"])
+
+            logger.debug(f"{dhcp_mode.get_attribute('value')}")
+            if dhcp_mode.get_attribute("value") != self.cfg["dns"]["update_dhcp_mode"]["value"]:
+                dhcp_mode = Select(dhcp_mode)
+                dhcp_mode.select_by_visible_text(self.cfg["dns"]["update_dhcp_mode"]["value"])
+
     def update_dns_settings(self) -> bool:
         logger.info(f"Updating DNS server settings")
 
         if "iframe" in self.cfg["dns"].keys():
             self.driver.switch_to.frame(self.cfg["dns"]["iframe"])
+
+        self.set_dhcp_mode()
 
         for dns_idx in range(2):
             if self.cfg["dns"]["split_octets"]:
