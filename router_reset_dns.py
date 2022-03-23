@@ -117,12 +117,35 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
             username_field.send_keys(router_username)
 
+        elif cfg["routers"][group_model]["login"]["username"]["type"] == "xpath":
+            w = waiter(driver=driver, find_by="xpath", loc=cfg["routers"][group_model]["login"]["username"]["location"])
+            if not w:
+                logger.warning(f"Timed out waiting for {cfg['routers'][group_model]['login']['username']['location']}, skipping...")
+                continue
+
+            try:
+                username_field = driver.find_element(By.XPATH,
+                                                     cfg["routers"][group_model]["login"]["username"]["location"])
+            except NoSuchElementException:
+                driver.close()
+                logger.error(f"Username field was not found, skipping ...")
+                continue
+
+            username_field.send_keys(router_username)
+
         if cfg["routers"][group_model]["login"]["password"]["type"] == "id":
             password_field = driver.find_element(By.ID, cfg["routers"][group_model]["login"]["password"]["location"])
             password_field.send_keys(router_password)
 
+        elif cfg["routers"][group_model]["login"]["password"]["type"] == "xpath":
+            password_field = driver.find_element(By.XPATH, cfg["routers"][group_model]["login"]["password"]["location"])
+            password_field.send_keys(router_password)
+
         if cfg["routers"][group_model]["login"]["submit"]["type"] == "id":
             driver.find_element(By.ID, cfg["routers"][group_model]["login"]["submit"]["location"]).click()
+
+        elif cfg["routers"][group_model]["login"]["submit"]["type"] == "xpath":
+            driver.find_element(By.XPATH, cfg["routers"][group_model]["login"]["submit"]["location"]).click()
 
         sleep(2)
         # check if login worked
