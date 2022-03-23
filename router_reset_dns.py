@@ -50,14 +50,17 @@ def waiter(driver: object, find_by: str, loc: str) -> bool:
 @click.option("--dns", help="Comma separated list of dns servers: 8.8.8.8,1.1.1.1")
 @click.option("--start-from", default=0, help="Start from line N in router-data file")
 @click.option("-c", "--config", type=click.Path(), help="Config file, yaml")
-def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str):
+@click.option("--skip-header/--no-skip-header", default=False)
+def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool):
     router_data = []
     with open(routers) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=";")
-        next(csv_reader)  # skip headers
+        if skip_header:
+            next(csv_reader)  # skip header
         for row in csv_reader:
             router_data.append(row)
 
+    logger.debug(router_data)
     with open(config, "r") as f:
         cfg = yaml.safe_load(f)
 
@@ -115,6 +118,22 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
         if cfg["routers"][group_model]["login"]["submit"]["type"] == "id":
             driver.find_element(By.ID, cfg["routers"][group_model]["login"]["submit"]["location"]).click()
+
+        sleep(2)
+        # check if login worked
+        if "check_login" in cfg["routers"][group_model]["login"]:
+            if "iframe" in cfg["routers"][group_model]["login"]["check_login"].keys():
+                driver.switch_to.frame(cfg["routers"][group_model]["login"]["check_login"]["iframe"])
+
+            w = waiter(driver=driver, find_by=cfg["routers"][group_model]["login"]["check_login"]["type"],
+                       loc=cfg["routers"][group_model]["login"]["check_login"]["location"])
+
+            if not w:
+                logger.error(f"Login failed, skipping...")
+                continue
+
+            if "iframe" in cfg["routers"][group_model]["login"].keys():
+                driver.switch_to.parent_frame()
 
         logger.info(f"Logged in")
 

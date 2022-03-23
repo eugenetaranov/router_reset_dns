@@ -4,7 +4,9 @@ models:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
   ZTE_F612:
-    - 'ZTE_F612'
+    - ZTE_F612
+  ZTE_F670:
+    - ZTE_F670
   Airocon:
     - 'Airocon UR-344AN4G, firmware: V2.1.4'
     - 'Airocon UR-344AN4G, firmware: V2.1.3'
@@ -58,6 +60,9 @@ routers:
       submit:
         type: id
         location: LoginId
+      check_login:
+        type: xpath
+        location: //*[contains(text(),'Logout')]
     iframe: mainFrame
     steps:
     - type: id
@@ -66,6 +71,38 @@ routers:
       location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[9]'
     - type: xpath
       location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[6]'
+    dns:
+      split_octets: false
+      dns_1:
+        type: id
+        location: Frm_DNSServer1
+      dns_2:
+        type: id
+        location: Frm_DNSServer2
+      submit:
+        type: id
+        location: Btn_Submit
+  ZTE_F670:
+    login:
+      username:
+        type: id
+        location: Frm_Username
+      password:
+        type: id
+        location: Frm_Password
+      submit:
+        type: id
+        location: LoginId
+      check_login:
+        iframe: mainFrame
+        type: xpath
+        location: //*[contains(text(),'Logout')]
+    iframe: mainFrame
+    steps:
+    - type: id
+      location: mmNet
+    - type: xpath
+      location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[13]'
     dns:
       split_octets: false
       dns_1:
