@@ -15,7 +15,7 @@ pip3 install -r requirements.txt
 
 5. Create a csv file with routers data:
 ```csv
-192.168.0.1,admin,password,ZTE_F612
+192.168.0.1;80;;;admin:admin;ZTE_ZXHN_H298A
 ```
 
 6. Add/Update router settings, if needed to config.yaml. It describes steps needed to login, navigate to DNS settings page and update settings.

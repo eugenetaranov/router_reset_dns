@@ -1,4 +1,14 @@
 ---
+models:
+  ZTE_ZXHN_H298A:
+    - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
+    - ZTE_ZXHN_H298A
+  ZTE_F612:
+    - 'ZTE_F612'
+  Airocon:
+    - 'Airocon UR-344AN4G, firmware: V2.1.4'
+    - 'Airocon UR-344AN4G, firmware: V2.1.3'
+    - Airocon
 routers:
   ZTE_ZXHN_H298A:
     login:
@@ -54,6 +64,8 @@ routers:
       location: mmNet
     - type: xpath
       location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[9]'
+    - type: xpath
+      location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[6]'
     dns:
       split_octets: false
       dns_1:
