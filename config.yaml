@@ -3,10 +3,10 @@ models:
   ZTE_ZXHN_H298A:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
-    - ZTE ZXHN H118N
     - ZTE ZXHN H298A V1.1
   ZTE_F612:
     - ZTE_F612
+    - ZTE ZXHN H118N
   ZTE_F670:
     - ZTE_F670
   Airocon:
