@@ -53,7 +53,10 @@ class Router:
             self.router_proto = "https"
         else:
             self.router_proto = "http"
-        self.router_url = f"{self.router_proto}://{self.router_ip}:{self.router_port}"
+        if "basic" in self.cfg["login"] and self.cfg["login"]["basic"]:
+            self.router_url = f"{self.router_proto}://{self.router_user}:{self.router_password}@{self.router_ip}:{self.router_port}"
+        else:
+            self.router_url = f"{self.router_proto}://{self.router_ip}:{self.router_port}"
         self.driver = webdriver.Chrome(service=driver_srv, options=driver_options)
         self.driver.set_page_load_timeout(60)
 
@@ -78,13 +81,20 @@ class Router:
         return True
 
     def process(self) -> bool:
-        res = self.do_login()
+        res = self.open_main_page()
         if not res:
             return False
+
+        if not "basic" in self.cfg["login"]:
+            res = self.do_login()
+
+            if not res:
+                return False
 
         res = self.open_dns_page()
         if not res:
             return False
+
 
         res = self.update_dns_settings()
         if not res:
@@ -92,7 +102,7 @@ class Router:
 
         return True
 
-    def do_login(self) -> bool:
+    def open_main_page(self) -> bool:
         try:
             self.driver.get(self.router_url)
         except WebDriverException:
@@ -100,6 +110,9 @@ class Router:
             logger.warning(f"Connection to {self.router_ip} failed, skipping...")
             return False
 
+        return True
+
+    def do_login(self) -> bool:
         w = self._waiter(element=self.cfg["login"]["username"])
         if not w:
             logger.warning(
