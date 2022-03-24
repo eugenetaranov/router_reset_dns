@@ -62,13 +62,15 @@ class Router:
 
     def _waiter(self, element: dict) -> bool:
         """waiter for elements"""
+        timeout = 60
         type = element["type"]
         loc = element["location"]
+        logger.debug(f"Waiting for {type} {loc}")
         try:
             if type == "id":
-                WebDriverWait(self.driver, timeout=30).until(lambda d: d.find_element(By.ID, loc))
+                WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.ID, loc))
             elif type == "xpath":
-                WebDriverWait(self.driver, timeout=30).until(lambda d: d.find_element(By.XPATH, loc))
+                WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.XPATH, loc))
         except TimeoutException:
             logger.warning(f"Timed out waiting for {loc} element, apparently login failed, skipping ...")
             return False
@@ -209,10 +211,6 @@ class Router:
                 octets = self.dns_servers[dns_idx].split(".")
 
                 for idx, loc in enumerate(self.cfg["dns"][f"dns_{dns_idx + 1}"]["location"]):
-                    w = self._waiter(element=self.cfg["dns"][f"dns_{dns_idx + 1}"])
-                    if not w:
-                        return False
-
                     if self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
                         octet_input = self.driver.find_element(By.ID, loc)
                         octet_input.clear()
