@@ -279,6 +279,7 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
     op = webdriver.ChromeOptions()
 
     for router_data in routers_data:
+        logger.info(f"Started router {router_data[0]} {router_data[5]}")
         model = router_data[5]
         group_model = map_model(cfg=cfg["models"], router_model=model)
         if not group_model:
