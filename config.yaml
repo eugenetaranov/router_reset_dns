@@ -3,6 +3,8 @@ models:
   ZTE_ZXHN_H298A:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
+    - ZTE ZXHN H118N
+    - ZTE ZXHN H298A V1.1
   ZTE_F612:
     - ZTE_F612
   ZTE_F670:
@@ -10,6 +12,7 @@ models:
   Airocon:
     - 'Airocon UR-344AN4G, firmware: V2.1.4'
     - 'Airocon UR-344AN4G, firmware: V2.1.3'
+    - 'Airocon F@st 1744,v2, firmware'
     - Airocon
 routers:
   ZTE_ZXHN_H298A:
@@ -60,9 +63,9 @@ routers:
       submit:
         type: id
         location: LoginId
-      check_login:
-        type: xpath
-        location: //*[contains(text(),'Logout')]
+#      check_login:
+#        type: xpath
+#        location: //*[contains(text(),'Logout')]
     iframe: mainFrame
     steps:
     - type: id

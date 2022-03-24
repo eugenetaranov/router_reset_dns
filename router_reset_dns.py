@@ -181,11 +181,11 @@ class Router:
         return True
 
     def set_dhcp_mode(self):
-        w = self._waiter(element=self.cfg["dns"]["check_dhcp_mode"])
-        if not w:
-            return False
-
         if "check_dhcp_mode" in self.cfg["dns"]:
+            w = self._waiter(element=self.cfg["dns"]["check_dhcp_mode"])
+            if not w:
+                return False
+
             if self.cfg["dns"]["check_dhcp_mode"]["type"] == "id":
                 dhcp_mode = self.driver.find_element(By.ID, self.cfg["dns"]["check_dhcp_mode"]["location"])
 
@@ -261,7 +261,7 @@ class Router:
 @click.option("--dns", help="Comma separated list of dns servers: 8.8.8.8,1.1.1.1")
 @click.option("--start-from", default=0, help="Start from line N in router-data file")
 @click.option("-c", "--config", type=click.Path(), help="Config file, yaml")
-@click.option("--skip-header/--no-skip-header", default=False)
+@click.option("--skip-header/--no-skip-header", default=True)
 def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool):
     routers_data = []
     with open(routers) as csv_file:
