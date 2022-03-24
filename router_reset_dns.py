@@ -57,6 +57,9 @@ class Router:
         self.driver = webdriver.Chrome(service=driver_srv, options=driver_options)
         self.driver.set_page_load_timeout(60)
 
+    def __del__(self):
+        self.driver.close()
+
     def _waiter(self, element: dict) -> bool:
         """waiter for elements"""
         type = element["type"]
@@ -189,7 +192,6 @@ class Router:
             elif self.cfg["dns"]["check_dhcp_mode"]["type"] == "xpath":
                 dhcp_mode = self.driver.find_element(By.XPATH, self.cfg["dns"]["check_dhcp_mode"]["location"])
 
-            logger.debug(f"{dhcp_mode.get_attribute('value')}")
             if dhcp_mode.get_attribute("value") != self.cfg["dns"]["update_dhcp_mode"]["value"]:
                 dhcp_mode = Select(dhcp_mode)
                 dhcp_mode.select_by_visible_text(self.cfg["dns"]["update_dhcp_mode"]["value"])
@@ -299,6 +301,7 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
             driver_options=op,
         )
         router.process()
+        del router
 
 
 if __name__ == "__main__":
