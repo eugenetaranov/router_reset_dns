@@ -14,6 +14,7 @@ models:
     - 'Airocon UR-344AN4G, firmware: V2.1.4'
     - 'Airocon UR-344AN4G, firmware: V2.1.3'
     - 'Airocon F@st 1744,v2, firmware'
+    - Airocon F@st 1744, v2, firmware
     - Airocon
   SERCOMM_RV6699:
     - SERCOMM RV6699
@@ -147,7 +148,7 @@ routers:
       update_dhcp_mode:
         type: xpath
         location: '/html/body/form/div[3]/table/tbody/tr[7]/td/select'
-        value: Manual
+        value: 1
       dns_1:
         type: xpath
         location: '//*[@id="manual_dns1"]/td/input'

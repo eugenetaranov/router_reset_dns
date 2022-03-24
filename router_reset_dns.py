@@ -61,7 +61,10 @@ class Router:
         self.driver.set_page_load_timeout(60)
 
     def __del__(self):
-        self.driver.close()
+        try:
+            self.driver.close()
+        except:
+            pass
 
     def _waiter(self, element: dict) -> bool:
         """waiter for elements"""
@@ -208,8 +211,15 @@ class Router:
                 dhcp_mode = self.driver.find_element(By.XPATH, self.cfg["dns"]["check_dhcp_mode"]["location"])
 
             if dhcp_mode.get_attribute("value") != self.cfg["dns"]["update_dhcp_mode"]["value"]:
+                logger.info("Updating DHCP mode")
                 dhcp_mode = Select(dhcp_mode)
-                dhcp_mode.select_by_visible_text(self.cfg["dns"]["update_dhcp_mode"]["value"])
+                try:
+                    dhcp_mode.select_by_value(str(self.cfg["dns"]["update_dhcp_mode"]["value"]))
+                except NoSuchElementException as e:
+                    logger.error(e)
+                    return False
+
+        return True
 
     def update_dns_settings(self) -> bool:
         logger.info(f"Updating DNS server settings")
@@ -217,7 +227,9 @@ class Router:
         if "iframe" in self.cfg["dns"].keys():
             self.driver.switch_to.frame(self.cfg["dns"]["iframe"])
 
-        self.set_dhcp_mode()
+        res = self.set_dhcp_mode()
+        if not res:
+            return False
 
         for dns_idx in range(2):
             if self.cfg["dns"]["split_octets"]:
