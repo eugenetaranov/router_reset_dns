@@ -287,7 +287,7 @@ class Router:
 @click.option("--skip-header/--no-skip-header", default=True)
 def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool):
     routers_data = []
-    with open(routers) as csv_file:
+    with open(routers, mode="r", encoding="utf8", errors="ignore") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=";")
         if skip_header:
             next(csv_reader)  # skip header
