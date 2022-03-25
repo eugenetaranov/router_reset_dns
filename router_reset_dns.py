@@ -237,12 +237,20 @@ class Router:
 
                 for idx, loc in enumerate(self.cfg["dns"][f"dns_{dns_idx + 1}"]["location"]):
                     if self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "id":
-                        octet_input = self.driver.find_element(By.ID, loc)
+                        try:
+                            octet_input = self.driver.find_element(By.ID, loc)
+                        except NoSuchElementException:
+                            logger.error(f"Element {loc} was not found, skipping...")
+                            return False
                         octet_input.clear()
                         octet_input.send_keys(octets[idx])
 
                     elif self.cfg["dns"][f"dns_{dns_idx + 1}"]["type"] == "xpath":
-                        octet_input = self.driver.find_element(By.XPATH, loc)
+                        try:
+                            octet_input = self.driver.find_element(By.XPATH, loc)
+                        except NoSuchElementException:
+                            logger.error(f"Element {loc} was not found, skipping...")
+                            return False
                         octet_input.clear()
                         octet_input.send_keys(octets[idx])
 

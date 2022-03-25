@@ -18,6 +18,8 @@ models:
     - Airocon
   SERCOMM_RV6699:
     - SERCOMM RV6699
+  SERCOMM_RV6688:
+    - SERCOMM RV6688
 routers:
   ZTE_ZXHN_H298A:
     login:
@@ -164,6 +166,33 @@ routers:
     steps:
     - type: id
       location: Menu1Txt1
+    dns:
+      split_octets: true
+      dns_1:
+        type: xpath
+        location:
+        - '//*[@id="id_dns_servers_1"]/td[2]/input[1]'
+        - '//*[@id="id_dns_servers_1"]/td[2]/input[2]'
+        - '//*[@id="id_dns_servers_1"]/td[2]/input[3]'
+        - '//*[@id="id_dns_servers_1"]/td[2]/input[4]'
+      dns_2:
+        type: xpath
+        location:
+        - '//*[@id="id_dns_servers_2"]/td[2]/input[1]'
+        - '//*[@id="id_dns_servers_2"]/td[2]/input[2]'
+        - '//*[@id="id_dns_servers_2"]/td[2]/input[3]'
+        - '//*[@id="id_dns_servers_2"]/td[2]/input[4]'
+      submit:
+        type: xpath
+        location: '/html/body/table/tbody/tr/td[3]/table/tbody/tr[3]/td/table/tbody/tr/td/form/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr[8]/td/p/input[1]'
+  SERCOMM_RV6688:
+    login:
+      basic: true
+    steps:
+    - type: xpath
+      location: /html/body/table/tbody/tr/td[3]/table/tbody/tr[1]/td/table/tbody/tr[3]/td/div/ul/li[2]/a
+    - type: xpath
+      location: /html/body/table/tbody/tr/td[1]/table/tbody/tr[2]/td/table/tbody/tr/td/table[2]/tbody/tr/td/a
     dns:
       split_octets: true
       dns_1:
