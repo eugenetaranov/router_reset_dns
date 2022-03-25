@@ -18,6 +18,7 @@ models:
     - Airocon
   SERCOMM_RV6699:
     - SERCOMM RV6699
+    - Sercomm
   SERCOMM_RV6688:
     - SERCOMM RV6688
 routers:
