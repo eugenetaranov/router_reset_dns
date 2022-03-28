@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import sys
 from typing import Optional
 import click
 import csv
@@ -327,7 +327,8 @@ class Router:
 @click.option("--start-from", default=0, help="Start from line N in router-data file")
 @click.option("-c", "--config", type=click.Path(), help="Config file, yaml")
 @click.option("--skip-header/--no-skip-header", default=True)
-def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool):
+@click.option("--debug/--no-debug", default=False)
+def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool, debug: bool):
     routers_data = []
     with open(routers, mode="r", encoding="utf8", errors="ignore") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=";")
@@ -340,6 +341,9 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
         cfg = yaml.safe_load(f)
 
     routers_data = routers_data[start_from:]
+    if debug:
+        routers_data = routers_data[:1]
+
     srv = Service(driver_path)
     op = webdriver.ChromeOptions()
 
