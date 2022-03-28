@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from typing import Optional
 
+from typing import Optional
 import click
 import csv
 import yaml
@@ -98,7 +98,6 @@ class Router:
         if not res:
             return False
 
-
         res = self.update_dns_settings()
         if not res:
             return False
@@ -116,6 +115,41 @@ class Router:
         return True
 
     def do_login(self) -> bool:
+        res = False
+        # both username and password are present
+        if "username" in self.cfg["login"] and "password" in self.cfg["login"]:
+            res = self._do_login_with_login_and_password()
+
+        # only password is present
+        if not "username" in self.cfg["login"] and "password" in self.cfg["login"]:
+            res = self._do_login_with_password_only()
+
+        return res
+
+    def _do_login_with_password_only(self) -> bool:
+        w = self._waiter(element=self.cfg["login"]["password"])
+        if not w:
+            logger.warning(
+                f"Timed out waiting for {self.cfg['login']['password']['location']}, skipping...")
+            return False
+
+        if self.cfg["login"]["password"]["type"] == "id":
+            password_field = self.driver.find_element(By.ID, self.cfg["login"]["password"]["location"])
+            password_field.send_keys(self.router_password)
+
+        elif self.cfg["login"]["password"]["type"] == "xpath":
+            password_field = self.driver.find_element(By.XPATH, self.cfg["login"]["password"]["location"])
+            password_field.send_keys(self.router_password)
+
+        if self.cfg["login"]["submit"]["type"] == "id":
+            self.driver.find_element(By.ID, self.cfg["login"]["submit"]["location"]).click()
+
+        elif self.cfg["login"]["submit"]["type"] == "xpath":
+            self.driver.find_element(By.XPATH, self.cfg["login"]["submit"]["location"]).click()
+
+        return True
+
+    def _do_login_with_login_and_password(self) -> bool:
         w = self._waiter(element=self.cfg["login"]["username"])
         if not w:
             logger.warning(
@@ -316,11 +350,13 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
         if not group_model:
             logger.warning(f"Model {model} for {router_data[0]} was not found in configured models, skipping ...")
             continue
-        try:
+
+        l = len(router_data[4].split(":"))
+        if ":" in router_data[4]:
             router_user, router_password = router_data[4].split(":")
-        except (ValueError, IndexError):
-            logger.warning(f"Unable to parse login/password {router_data[4]}, skipping ...")
-            continue
+        else:
+            router_user = ""
+            router_password = router_data[4]
 
         router = Router(
             cfg=cfg["routers"][group_model],

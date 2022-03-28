@@ -3,24 +3,62 @@ models:
   ZTE_ZXHN_H298A:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
-    - ZTE ZXHN H298A V1.1
-    - ZTE ZXHN H298A V1.1, firmware
+    - 'ZTE ZXHN H298A V1.1'
+    - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROS_T20'
+  ZTE_ZXHN_H108N:
+    - 'ZTE ZXHN H108N, hardware: 1.2, firmware: 2.5.5_RU8T10'
+  ZTE_ZXHN_H118N:
+    - 'ZTE ZXHN H118N, hardware: 2.3, firmware: 2.1.3_ROSCNT13'
+    - 'ZTE ZXHN H118N'
   ZTE_F612:
+    - ZTE F612
     - ZTE_F612
-    - ZTE ZXHN H118N
+    - ZTE F660
   ZTE_F670:
-    - ZTE_F670
+    - ZTE F670
   Airocon:
     - 'Airocon UR-344AN4G, firmware: V2.1.4'
     - 'Airocon UR-344AN4G, firmware: V2.1.3'
     - 'Airocon F@st 1744,v2, firmware'
-    - Airocon F@st 1744, v2, firmware
+    - 'Airocon F@st 1744,v2, firmware'
+    - 'Airocon F@st 1744, v4, firmware'
+    - 'Airocon F@st 1704 RT'
+    - 'Airocon F@st 1744'
+    - 'Airocon TP-Link TD854W'
+    - 'Airocon F@st 1744, v2.2, firmware'
+    - 'Airocon F@st 2804, v7 rev.3, firmware'
+    - 'Airocon F@ST 4320 V1, firmware'
+    - 'Airocon Netis Modem Router, firmware'
+    - 'Airocon Netis Wireless Router, firmware'
+    - 'Airocon F@st 1744, v2, firmware'
+    - 'Airocon F@st 1704 RT, firmware'
+
     - Airocon
   SERCOMM_RV6699:
-    - SERCOMM RV6699
-    - Sercomm
-  SERCOMM_RV6688:
-    - SERCOMM RV6688
+    - 'SERCOMM_RV6699'
+    - 'SERCOMM'
+    - 'Sercomm'
+  TP-Link WR840N:
+    - 'TP-LINK TL-WR840N Router'
+    - 'TP-LINK TL-WR840N'
+    - 'TP-LINK Archer C50 Router'
+  TP-Link WR841N:
+    - 'TP-LINK TL-WR841N'
+    - 'TL-WR841N'
+  TP-Link WR940N:
+    - 'TP-Link WR940N'
+    - 'TP-LINK TL-WR940N'
+    - 'TP-LINK Archer A5 Router'
+  TP-Link Archer C60:
+    - 'Archer C60'
+    - 'TP-Link Archer C60'
+  D-Link DWR-921:
+    - 'D-Link DWR-921, hardware: C3, firmware: 3.0.2'
+    - 'D-Link DIR-825'
+  Huawei Technologies HG8245:
+    - 'Huawei Technologies HG8245'
+
+
 routers:
   ZTE_ZXHN_H298A:
     login:
@@ -59,6 +97,70 @@ routers:
       submit:
         type: id
         location: Btn_apply_LocalDnsServer
+  ZTE_ZXHN_H108N:
+    login:
+      username:
+        type: id
+        location: Frm_Username
+      password:
+        type: id
+        location: Frm_Password
+      submit:
+        type: id
+        location: LoginId
+#      check_login:
+#        type: xpath
+#        location: //*[contains(text(),'Logout')]
+    iframe: mainFrame
+    steps:
+    - type: id
+      location: mmNet
+    - type: xpath
+      location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[12]/td[2]'
+    dns:
+      split_octets: false
+      dns_1:
+        type: id
+        location: Frm_DNSServer1
+      dns_2:
+        type: id
+        location: Frm_DNSServer2
+      submit:
+        type: id
+        location: Btn_Submit
+  ZTE_ZXHN_H118N:
+    login:
+      username:
+        type: id
+        location: Frm_Username
+      password:
+        type: id
+        location: Frm_Password
+      submit:
+        type: id
+        location: LoginId
+#      check_login:
+#        type: xpath
+#        location: //*[contains(text(),'Logout')]
+    iframe: mainFrame
+    steps:
+    - type: id
+      location: mmNet
+    - type: xpath
+      location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[9]'
+    dns:
+      split_octets: false
+      dns_1:
+        type: id
+        location: Frm_DNSServer1
+      dns_2:
+        type: id
+        location: Frm_DNSServer2
+      submit:
+        type: id
+        location: Btn_Submit
+
+
   ZTE_F612:
     login:
       username:
@@ -79,8 +181,6 @@ routers:
       location: mmNet
     - type: xpath
       location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[9]'
-    - type: xpath
-      location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[6]'
     dns:
       split_octets: false
       dns_1:
@@ -161,6 +261,7 @@ routers:
       submit:
         type: xpath
         location: '/html/body/form/div[5]/div/input[1]'
+
   SERCOMM_RV6699:
     login:
       basic: true
@@ -186,30 +287,178 @@ routers:
       submit:
         type: xpath
         location: '/html/body/table/tbody/tr/td[3]/table/tbody/tr[3]/td/table/tbody/tr/td/form/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr[8]/td/p/input[1]'
-  SERCOMM_RV6688:
+  TP-Link WR840N:
     login:
-      basic: true
+      username:
+        type: id
+        location: userName
+      password:
+        type: id
+        location: pcPassword
+      submit:
+        type: id
+        location: loginBtn
+    iframe: frame1
     steps:
-    - type: xpath
-      location: /html/body/table/tbody/tr/td[3]/table/tbody/tr[1]/td/table/tbody/tr[3]/td/div/ul/li[2]/a
-    - type: xpath
-      location: /html/body/table/tbody/tr/td[1]/table/tbody/tr[2]/td/table/tbody/tr/td/table[2]/tbody/tr/td/a
+    - type: id
+      location: menu_dhcp
     dns:
-      split_octets: true
+      iframe: frame2
+      split_octets: false
       dns_1:
-        type: xpath
-        location:
-        - '//*[@id="id_dns_servers_1"]/td[2]/input[1]'
-        - '//*[@id="id_dns_servers_1"]/td[2]/input[2]'
-        - '//*[@id="id_dns_servers_1"]/td[2]/input[3]'
-        - '//*[@id="id_dns_servers_1"]/td[2]/input[4]'
+        type: id
+        location: dnsserver1
       dns_2:
-        type: xpath
-        location:
-        - '//*[@id="id_dns_servers_2"]/td[2]/input[1]'
-        - '//*[@id="id_dns_servers_2"]/td[2]/input[2]'
-        - '//*[@id="id_dns_servers_2"]/td[2]/input[3]'
-        - '//*[@id="id_dns_servers_2"]/td[2]/input[4]'
+        type: id
+        location: dnsserver2
+      submit:
+        type: id
+        location: saveBtn
+  TP-Link WR841N:
+    login:
+      username:
+        type: id
+        location: userName
+      password:
+        type: id
+        location: pcPassword
+      submit:
+        type: id
+        location: loginBtn
+    iframe: bottomLeftFrame
+    steps:
+    - type: id
+      location: a16
+    dns:
+      iframe: mainFrame
+      split_octets: false
+      dns_1:
+        type: id
+        location: dnsserver
+      dns_2:
+        type: id
+        location: dnsserver2
       submit:
         type: xpath
-        location: '/html/body/table/tbody/tr/td[3]/table/tbody/tr[3]/td/table/tbody/tr/td/form/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr[8]/td/p/input[1]'
+        location: '/html/body/center/form/table/tbody/tr[13]/td[2]/input'
+
+  TP-Link WR940N:
+    login:
+      username:
+        type: id
+        location: userName
+      password:
+        type: id
+        location: pcPassword
+      submit:
+        type: id
+        location: loginBtn
+    iframe: bottomLeftFrame
+    steps:
+    - type: id
+      location: a17
+    dns:
+      iframe: mainFrame
+      split_octets: false
+      dns_1:
+        type: xpath
+        location: '/html/body/center/form/table/tbody/tr[9]/td[2]/input'
+      dns_2:
+        type: xpath
+        location: '/html/body/center/form/table/tbody/tr[10]/td[2]/input'
+      submit:
+        type: xpath
+        location: '/html/body/center/form/table/tbody/tr[12]/td[2]/input'
+
+  TP-Link Archer C60:
+    login:
+      password:
+        type: xpath
+        location: '/html/body/div[1]/div[2]/div[1]/div[1]/div/form[3]/div[2]/div/div/div[1]/span[3]/input'
+      submit:
+        type: id
+        location: login-btn
+    steps:
+    - type: xpath
+      location: '/html/body/div[1]/div[2]/div/div[1]/ul/li[3]/div/a'
+    - type: xpath
+      location: '/html/body/div[1]/div[4]/div[1]/div[1]/div/div/div[1]/ul/li[2]/a'
+    - type: xpath
+      location: '/html/body/div[1]/div[4]/div[1]/div[1]/div/div/div[1]/ul/li[2]/div/ul/li[1]/a'
+    - type: xpath
+      location: '/html/body/div[1]/div[4]/div[1]/div[1]/div/div/div[2]/div/div[1]/div/div[2]/div[2]/div/div[4]/div/form/div[6]'
+    - type: xpath
+      location: '/html/body/div[1]/div[4]/div[1]/div[1]/div/div/div[2]/div/div[1]/div/div[2]/div[2]/div/div[4]/div/form/div[8]/div[11]/div[2]/div[1]/ul/li[2]/div[1]/label/input'
+    dns:
+      split_octets: false
+      dns_1:
+        type: id
+        location: inet4_pppoe_static_pridns
+      dns_2:
+        type: id
+        location: inet4_pppoe_static_snddns
+      submit:
+        type: id
+        location: pppoe_conn_btn
+
+  D-Link DWR-921:
+    login:
+      username:
+        type: id
+        location: loginDialogUsername
+      password:
+        type: xpath
+        location: '/html/body/div[6]/div[2]/form/div[1]/div[1]/label/div[1]/div/input'
+      submit:
+        type: xpath
+        location: '/html/body/div[6]/div[2]/form/div[2]/button[1]'
+    steps:
+    - type: xpath
+      location: '/html/body/div[2]/div[2]/div[1]/div[2]/div/ul[1]/li[5]/span'
+    - type: xpath
+      location: '/html/body/div[2]/div[2]/div[1]/div[2]/div/ul[1]/li[5]/ul/div[1]/li'
+    - type: xpath
+      location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/div/div/div/div[2]/div/button[2]'
+    - type: xpath
+      location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/div/div[2]/div/div/div[1]/div/div/table/tbody/tr'
+    - type: xpath
+      location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/form/div[2]/div[1]/div/span[2]'
+    dns:
+      split_octets: false
+      dns_1:
+        type: xpath
+        location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/form/div[2]/div[2]/div[1]/div/div/div/div[6]/div/div/div/label[2]/div[1]/div/input'
+      dns_2:
+        type: xpath
+        location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/form/div[2]/div[2]/div[1]/div/div/div/div[6]/div/div/div/label[3]/div[1]/div/input'
+      submit:
+        type: xpath
+        location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/form/div[2]/div[2]/div[2]/button[2]'
+  Huawei Technologies HG8245:
+    login:
+      username:
+        type: id
+        location: txt_Username
+      password:
+        type: id
+        location: txt_Password
+      submit:
+        type: id
+        location: button
+    steps:
+    - type: xpath
+      location: '/html/body/div/div[1]/div[2]/div[2]/ul/li[3]/div[2]'
+    - type: xpath
+      location: '/html/body/div/div[2]/div[1]/ul/li[3]/div'
+    dns:
+      iframe: frameContent
+      split_octets: false
+      dns_1:
+        type: id
+        location: dnsMainPri
+      dns_2:
+        type: id
+        location: dnsMainSec
+      submit:
+        type: id
+        location: btnApply
