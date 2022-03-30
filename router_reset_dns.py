@@ -210,6 +210,7 @@ class Router:
     def open_dns_page(self) -> bool:
         if "iframe" in self.cfg.keys():
             self.driver.switch_to.frame(self.cfg["iframe"])
+            logger.debug(f"Switched to frame {self.cfg['iframe']}")
 
         for step in self.cfg["steps"]:
             w = self._waiter(element=step)
@@ -230,6 +231,11 @@ class Router:
                 except TimeoutException:
                     logger.error(f"Timed out waiting for step {step['location']}, skipping...")
                     return False
+
+        if "iframe" in self.cfg.keys():
+            self.driver.switch_to.parent_frame()
+            logger.debug(f"Switched to parent frame")
+
         return True
 
     def set_dhcp_mode(self):
