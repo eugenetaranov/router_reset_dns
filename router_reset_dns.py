@@ -114,6 +114,7 @@ class Router:
 
         return True
 
+    # login wrapper
     def do_login(self) -> bool:
         res = False
         # both username and password are present
@@ -126,6 +127,7 @@ class Router:
 
         return res
 
+    # password only login
     def _do_login_with_password_only(self) -> bool:
         w = self._waiter(element=self.cfg["login"]["password"])
         if not w:
@@ -149,6 +151,7 @@ class Router:
 
         return True
 
+    # common login with username and password
     def _do_login_with_login_and_password(self) -> bool:
         w = self._waiter(element=self.cfg["login"]["username"])
         if not w:
@@ -378,7 +381,12 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
             driver_srv=srv,
             driver_options=op,
         )
-        router.process()
+
+        try:
+            router.process()
+        except:
+            pass
+
         del router
 
 
