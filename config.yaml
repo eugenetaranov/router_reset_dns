@@ -327,9 +327,10 @@ routers:
         type: id
         location: loginBtn
     iframe: bottomLeftFrame
+    switch_to_parent_frame: true
     steps:
     - type: id
-      location: a16
+      location: a14
     dns:
       iframe: mainFrame
       split_octets: false

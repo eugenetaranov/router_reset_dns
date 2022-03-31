@@ -235,6 +235,10 @@ class Router:
                     logger.error(f"Timed out waiting for step {step['location']}, skipping...")
                     return False
 
+        if "switch_to_parent_frame" in self.cfg.keys() and self.cfg["switch_to_parent_frame"]:
+            self.driver.switch_to.parent_frame()
+            logger.debug(f"Switched to parent frame")
+
         return True
 
     def set_dhcp_mode(self):
