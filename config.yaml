@@ -211,7 +211,7 @@ routers:
     steps:
     - type: id
       location: mmNet
-    - type: xpath
+    - type: xpath 
       location: '/html/body/div[3]/div[1]/div[1]/table/tbody/tr/td/table/tbody/tr[13]'
     dns:
       split_octets: false
@@ -287,6 +287,7 @@ routers:
       submit:
         type: xpath
         location: '/html/body/table/tbody/tr/td[3]/table/tbody/tr[3]/td/table/tbody/tr/td/form/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr[8]/td/p/input[1]'
+
   TP-Link WR840N:
     login:
       username:
@@ -341,7 +342,7 @@ routers:
       submit:
         type: xpath
         location: '/html/body/center/form/table/tbody/tr[13]/td[2]/input'
-
+        
   TP-Link WR940N:
     login:
       username:
@@ -369,12 +370,15 @@ routers:
       submit:
         type: xpath
         location: '/html/body/center/form/table/tbody/tr[12]/td[2]/input'
-
+        
   TP-Link Archer C60:
     login:
+#      username:
+#        type: id
+#        location: userName
       password:
         type: xpath
-        location: '/html/body/div[1]/div[2]/div[1]/div[1]/div/form[3]/div[2]/div/div/div[1]/span[3]/input'
+        location: '/html/body/div[1]/div[2]/div[1]/div[1]/div/form[3]/div[2]/div/div/div[1]/span[2]/input[1]'
       submit:
         type: id
         location: login-btn
@@ -400,7 +404,7 @@ routers:
       submit:
         type: id
         location: pppoe_conn_btn
-
+ 
   D-Link DWR-921:
     login:
       username:
@@ -434,6 +438,7 @@ routers:
       submit:
         type: xpath
         location: '/html/body/div[2]/div[2]/div[2]/div[3]/div/ui-view/div/div/form/div[2]/div[2]/div[2]/button[2]'
+            
   Huawei Technologies HG8245:
     login:
       username:
@@ -462,3 +467,4 @@ routers:
       submit:
         type: id
         location: btnApply
+        
