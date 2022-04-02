@@ -26,3 +26,13 @@ pip3 install -r requirements.txt
 
 ```
 Optinally, you can set `--start-from` which effectively skips any preceeding items in the routers file. 
+
+#### Docker
+1. Build
+```bash
+./docker_build.sh
+```
+2. Run
+```bash
+./docker_run.sh
+```
