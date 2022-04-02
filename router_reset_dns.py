@@ -355,6 +355,9 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
     srv = Service(driver_path)
     op = webdriver.ChromeOptions()
+    op.add_argument("--headless")
+    op.add_argument("--no-sandbox")
+    op.add_argument("--disable-dev-shm-usage")
 
     for idx, router_data in enumerate(routers_data):
         logger.info(f"Started {idx} router {router_data[0]} {router_data[5]}")
