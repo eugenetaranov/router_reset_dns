@@ -13,11 +13,17 @@ from selenium.webdriver.support.select import Select
 from selenium.common.exceptions import WebDriverException, TimeoutException, NoSuchElementException
 from loguru import logger
 from time import sleep
+import subprocess
+import signal
 
 
 @click.group()
 def cli():
     pass
+
+
+def preexec_function():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
 def map_model(cfg: dict, router_model: str) -> str:
@@ -338,6 +344,11 @@ class Router:
 @click.option("--skip-header/--no-skip-header", default=True)
 @click.option("--debug/--no-debug", default=False)
 def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool, debug: bool):
+    subprocess.Popen(["Xvfb"],
+            stdout=open("/dev/null", "w"),
+            stderr=open("/dev/null", "w"),
+            preexec_fn=preexec_function
+            )
     routers_data = []
     with open(routers, mode="r", encoding="utf8", errors="ignore") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=";")

@@ -34,5 +34,5 @@ Optinally, you can set `--start-from` which effectively skips any preceeding ite
 ```
 2. Run
 ```bash
-./docker_run.sh
+./docker_run.sh -c config.yaml -r routers.csv -d 8.8.8.8,1.1.1.1
 ```

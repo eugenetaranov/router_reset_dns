@@ -1,1 +1,24 @@
-192.168.0.1;80;;;admin:admin;ZTE_ZXHN_H298A
+IP;Port;None;None;User:pass;Model
+212.220.105.75;80;;;superadmin:Zte521zTE@pon1483D;ZTE_F612
+212.220.105.177;80;;;superadmin:Zte521zTE@pon168B7;ZTE_F612
+212.220.15.159;80;;;superadmin:Zte521zTE@pon1A44E;ZTE_F670
+213.155.197.76;80;;;superadmin:Zte521zTE@pon30462;ZTE_F670
+212.164.208.3;80;;;superadmin:Fn@ztE118zTE;ZTE ZXHN H118N
+212.164.212.143;80;;;superadmin:Fn@ztE118zTE;ZTE ZXHN H118N
+212.20.49.171;80;;;superadmin:WsqOlAZL9htyxTvfZRD6;Airocon F@st 1744, v4, firmware
+109.169.196.74;80;;;superadmin:Is$uper@dmin;Airocon F@st 1744,v2, firmware
+178.44.114.44;80;;;superadmin:Zte531zTE@fn15217;ZTE ZXHN H298A V1.1, firmware
+128.0.136.93;80;;;admin:admin;SERCOMM RV6699
+128.0.136.93;80;;;admin:admin;SERCOMM RV6699
+178.44.186.39;80;;;superadmin:FT#3sw)5wEr#p&SGm!12261;Airocon F@st 1744, v2, firmware
+178.44.183.158;80;;;superadmin:FT#3sw)5wEr#p&SGm!07722;Airocon F@st 1744, v2, firmware
+87.251.102.165;80;;;superadmin:Zte531zTE@fn04235;ZTE_ZXHN_H298A
+87.251.112.134;80;;;superadmin:Zte531zTE@fn08744;ZTE_ZXHN_H298A
+87.251.116.132;80;;;superadmin:Zte531zTE@fn06697;ZTE_ZXHN_H298A
+87.251.117.245;80;;;admin:admin1;ZTE ZXHN H118N
+178.44.251.246;80;;;superadmin:Fn@ztE118zTE;ZTE ZXHN H118N
+178.44.200.8;80;;;superadmin:Fn@ztE118zTE;ZTE ZXHN H118N
+213.155.200.40;80;;;admin:admin1;ZTE F670
+213.155.203.11;80;;;admin:admin1;ZTE F670
+31.180.215.186;80;;;admin:admin;TP-LINK TL-WR841N
+5.130.25.56;80;;;admin:admin;TP-LINK TL-WR841N Router
