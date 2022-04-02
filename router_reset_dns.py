@@ -343,12 +343,16 @@ class Router:
 @click.option("-c", "--config", type=click.Path(), help="Config file, yaml")
 @click.option("--skip-header/--no-skip-header", default=True)
 @click.option("--debug/--no-debug", default=False)
-def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool, debug: bool):
-    subprocess.Popen(["Xvfb"],
-            stdout=open("/dev/null", "w"),
-            stderr=open("/dev/null", "w"),
-            preexec_fn=preexec_function
-            )
+@click.option("--docker-runtime/--no-docker-runtime", default=False)
+def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool, debug: bool,
+          docker_runtime: bool):
+    if docker_runtime:
+        subprocess.Popen(["Xvfb"],
+                         stdout=open("/dev/null", "w"),
+                         stderr=open("/dev/null", "w"),
+                         preexec_fn=preexec_function
+                         )
+
     routers_data = []
     with open(routers, mode="r", encoding="utf8", errors="ignore") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=";")
