@@ -3,6 +3,6 @@ services:
   app:
     build: .
     volumes:
-      - ./uploads:/mnt
+      - ./logs:/logs
     ports:
       - "8080:80"
