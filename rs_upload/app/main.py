@@ -3,7 +3,7 @@ from flask import request
 import json
 
 
-LOG_FILE="logs/data.log"
+LOG_FILE="/logs/data.log"
 
 app = Flask(__name__)
 
