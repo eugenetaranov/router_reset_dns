@@ -494,8 +494,7 @@ routers:
         - type: xpath
           location: //a[@href='Advanced_OperationMode_Content.asp']
         - type: xpath
-          location: /html/body/form/table/tbody/tr/td[3]/div/table/tbody/tr/td[2]
-#          location: //td[@class='b1']
+          location: (//a[contains(@href,'Content.asp')])[8]
       form:
         input:
           - type: xpath

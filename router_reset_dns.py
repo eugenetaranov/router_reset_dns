@@ -38,6 +38,58 @@ def map_model(cfg: dict, router_model: str) -> str:
     return ""
 
 
+class Element():
+    def __init__(self, driver: webdriver, element: dict):
+        self.driver = driver
+        self.kind = element["type"]
+        self.loc = element["location"]
+
+    def _wait(self):
+        """waiter for elements"""
+        timeout = 60
+
+        logger.debug(f"Waiting for {self.kind} {self.loc}")
+        try:
+            if self.kind == "id":
+                WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.ID, self.loc))
+
+            elif self.kind == "xpath":
+                WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.XPATH, self.loc))
+
+            else:
+                raise NotImplementedError
+
+        except TimeoutException:
+            logger.warning(f"Timed out waiting for {self.loc} element, apparently login failed, skipping ...")
+            raise
+
+    def click(self):
+        w = self._wait()
+
+        if self.kind == "id":
+            self.driver.find_element(By.ID, self.loc).click()
+
+        elif self.kind == "xpath":
+            self.driver.find_element(By.XPATH, self.loc).click()
+
+        else:
+            raise NotImplementedError
+
+    def input(self, input_value: str):
+        w = self._wait()
+
+        if self.kind == "id":
+            input_element = self.driver.find_element(By.ID, self.loc)
+            input_element.send_keys(input_value)
+
+        elif self.kind == "xpath":
+            input_element = self.driver.find_element(By.XPATH, self.loc)
+            input_element.send_keys(input_value)
+
+        else:
+            raise NotImplementedError
+
+
 class Router:
     def __init__(self,
                  cfg: dict,
@@ -79,18 +131,14 @@ class Router:
         loc = element["location"]
         logger.debug(f"Waiting for {type} {loc}")
         try:
-            print(1)
             if type == "id":
-                print(2)
                 WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.ID, loc))
             elif type == "xpath":
-                print(3)
                 WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.XPATH, loc))
             else:
                 logger.error(f"Not implemented")
                 return False
         except TimeoutException:
-            print(4)
             logger.warning(f"Timed out waiting for {loc} element, apparently login failed, skipping ...")
             return False
 
@@ -274,7 +322,7 @@ class Router:
                 logger.error(f"Timed out waiting for step {step['location']}, skipping...")
                 return False
 
-            logger.debug(f"Step {step['type']} {step['xpath']} passed")
+            logger.info(f"Step {step} passed")
 
         return True
 
@@ -382,32 +430,12 @@ class Router:
         if not res:
             return False
 
-        cfg = self.cfg["password_reset"]
+        for input_field in self.cfg["password_reset"]["form"]["input"]:
+            input_field_element = Element(driver=self.driver, element=input_field)
+            input_field_element.input(input_value=password)
 
-        for input_field in cfg["steps"]:
-            loc = input_field["location"]
-            w = self._waiter(element=input_field)
-            if not w:
-                return False
-
-            if input_field["type"] == "id":
-                password_input = self.driver.find_element(By.ID, loc)
-                password_input.send_keys(password)
-
-            elif input_field["type"] == "xpath":
-                password_input = self.driver.find_element(By.XPATH, loc)
-                password_input.send_keys(password)
-
-        sleep(1)
-        w = self._waiter(element=cfg["submit"])
-        if not w:
-            return False
-
-        if cfg["submit"]["type"] == "id":
-            self.driver.find_element(By.ID, cfg["submit"]["location"]).click()
-
-        elif cfg["submit"]["type"] == "xpath":
-            self.driver.find_element(By.XPATH, cfg["submit"]["location"]).click()
+        submit_btn = Element(driver=self.driver, element=self.cfg["password_reset"]["form"]["submit"])
+        submit_btn.click()
 
         logger.info(f"Password has been updated")
         sleep(3)
@@ -492,13 +520,15 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
         if dns_servers:
             try:
                 router.reset_dns()
-            except:
+            except Exception:
+                logger.exception("Failed to reset dns")
                 pass
 
         if new_password:
             try:
                 router.reset_password(password=new_password)
-            except:
+            except Exception:
+                logger.exception("Failed to reset password")
                 pass
 
         del router
