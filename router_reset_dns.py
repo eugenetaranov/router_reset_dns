@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.common.exceptions import WebDriverException, TimeoutException, NoSuchElementException
@@ -51,10 +52,11 @@ class Element():
         logger.debug(f"Waiting for {self.kind} {self.loc}")
         try:
             if self.kind == "id":
-                WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.ID, self.loc))
+                WebDriverWait(self.driver, timeout=timeout).until(EC.element_to_be_clickable((By.ID, self.loc)))
 
             elif self.kind == "xpath":
-                WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.XPATH, self.loc))
+                WebDriverWait(self.driver, timeout=timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, self.loc)))
 
             else:
                 raise NotImplementedError
@@ -64,7 +66,7 @@ class Element():
             raise
 
     def click(self):
-        w = self._wait()
+        self._wait()
 
         if self.kind == "id":
             self.driver.find_element(By.ID, self.loc).click()
@@ -75,8 +77,13 @@ class Element():
         else:
             raise NotImplementedError
 
-    def input(self, input_value: str):
+    def input(self, input_value: str, click_alert: bool = False):
         w = self._wait()
+
+        if click_alert:
+            self.click()
+            WebDriverWait(self.driver, timeout=10).until(EC.alert_is_present())
+            self.driver.switch_to.alert.accept()
 
         if self.kind == "id":
             input_element = self.driver.find_element(By.ID, self.loc)
@@ -302,29 +309,13 @@ class Router:
 
         return True
 
-    def open_password_change_page(self) -> bool:
+    def open_password_change_page(self):
         for step in self.cfg["password_reset"]["steps"]:
             logger.debug(f"Step {step}")
 
-            w = self._waiter(element=step)
-            if not w:
-                logger.error(f"Element {step['location']} was not found, skipping router...")
-                return False
-
-            try:
-                if step["type"] == "id":
-                    self.driver.find_element(By.ID, step["location"]).click()
-
-                elif step["type"] == "xpath":
-                    self.driver.find_element(By.XPATH, step["location"]).click()
-
-            except TimeoutException:
-                logger.error(f"Timed out waiting for step {step['location']}, skipping...")
-                return False
-
+            el = Element(driver=self.driver, element=step)
+            el.click()
             logger.info(f"Step {step} passed")
-
-        return True
 
     def set_dhcp_mode(self):
         if "check_dhcp_mode" in self.cfg["dns"]:
@@ -426,23 +417,42 @@ class Router:
             if not res:
                 return False
 
-        res = self.open_password_change_page()
-        if not res:
-            return False
+        self.open_password_change_page()
 
         for input_field in self.cfg["password_reset"]["form"]["input"]:
             input_field_element = Element(driver=self.driver, element=input_field)
-            input_field_element.input(input_value=password)
+
+            # click OK on alert when input is activated
+            if "alert_confirm" in input_field:
+                input_field_element.input(input_value=password, click_alert=True)
+            else:
+                input_field_element.input(input_value=password)
+
+            sleep(5)
 
         submit_btn = Element(driver=self.driver, element=self.cfg["password_reset"]["form"]["submit"])
         submit_btn.click()
 
-        if "alert_confirm" in self.cfg["password_reset"] and self.cfg["password_reset"]["alert_confirm"]:
-            alert = self.driver.switch_to.alert
-            alert.accept()
+        # ack popup
+        if "alert_confirm" in self.cfg["password_reset"]["form"] and self.cfg["password_reset"]["form"][
+            "alert_confirm"]:
+            WebDriverWait(self.driver, timeout=10).until(EC.alert_is_present())
+            self.driver.switch_to.alert.accept()
 
         logger.info(f"Password has been updated")
-        sleep(5)
+
+        # reboot
+        if "reboot" in self.cfg["password_reset"]:
+            logger.info("Rebooting")
+
+            for step in self.cfg["password_reset"]["reboot"]["steps"]:
+                Element(driver=self.driver, element=step).click()
+
+            if "alert_confirm" in self.cfg["password_reset"]["reboot"]:
+                WebDriverWait(self.driver, timeout=10).until(EC.alert_is_present())
+                self.driver.switch_to.alert.accept()
+
+            sleep(5)
 
         return True
 

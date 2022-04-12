@@ -499,9 +499,16 @@ routers:
         input:
           - type: xpath
             location: //input[@name='http_passwd2']
+            alert_confirm: true
           - type: xpath
             location: //input[@name='v_password2']
         submit:
           type: xpath
           location: //input[@name='button']
-      alert_confirm: true
+        alert_confirm: true
+      reboot:
+        steps:
+          - type: xpath
+            location: //a[@onclick='reboot();']
+        alert_confirm: true
+
