@@ -1,5 +1,7 @@
 ---
 models:
+  'ASUS RT-G32':
+    - ASUS RT-G32 Rev.C1
   ZTE_ZXHN_H298A:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
@@ -468,4 +470,38 @@ routers:
       submit:
         type: id
         location: btnApply
-        
+
+  ASUS RT-G32:
+    login:
+      basic: true
+    steps:
+    - type: xpath
+      location: '/html/body/table/tbody/tr/td[2]/div[2]/div[2]/a'
+    - type: xpath
+      location: '/html/body/form/table/tbody/tr/td[2]/div[2]/div[2]'
+    - type: xpath
+      location: '/html/body/form/table/tbody/tr/td[3]/div/table/tbody/tr/td[2]/a'
+    dns:
+      split_octets: false
+      dns_1:
+        type: xpath
+        location: '//*[@id="ruleForm"]/table/tbody/tr/td[3]/table/tbody/tr/td[1]/table/tbody[2]/tr[2]/td/table/tbody/tr[1]/td/input'
+      submit:
+        type: xpath
+        location: '//*[@id="ruleForm"]/table/tbody/tr/td[3]/table/tbody/tr/td[1]/table/tbody[2]/tr[3]/td/table/tbody/tr[5]/td/input'
+    password_reset:
+      steps:
+        - type: xpath
+          location: //a[@href='Advanced_OperationMode_Content.asp']
+        - type: xpath
+          location: /html/body/form/table/tbody/tr/td[3]/div/table/tbody/tr/td[2]
+#          location: //td[@class='b1']
+      form:
+        input:
+          - type: xpath
+            location: //input[@name='http_passwd2']
+          - type: xpath
+            location: //input[@name='v_password2']
+        submit:
+          type: xpath
+          location: //input[@name='button']

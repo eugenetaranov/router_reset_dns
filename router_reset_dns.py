@@ -64,7 +64,7 @@ class Router:
         else:
             self.router_url = f"{self.router_proto}://{self.router_ip}:{self.router_port}"
         self.driver = webdriver.Chrome(service=driver_srv, options=driver_options)
-        self.driver.set_page_load_timeout(60)
+        # self.driver.set_page_load_timeout(60)
 
     def __del__(self):
         try:
@@ -79,17 +79,24 @@ class Router:
         loc = element["location"]
         logger.debug(f"Waiting for {type} {loc}")
         try:
+            print(1)
             if type == "id":
+                print(2)
                 WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.ID, loc))
             elif type == "xpath":
+                print(3)
                 WebDriverWait(self.driver, timeout=timeout).until(lambda d: d.find_element(By.XPATH, loc))
+            else:
+                logger.error(f"Not implemented")
+                return False
         except TimeoutException:
+            print(4)
             logger.warning(f"Timed out waiting for {loc} element, apparently login failed, skipping ...")
             return False
 
         return True
 
-    def process(self) -> bool:
+    def reset_dns(self) -> bool:
         res = self.open_main_page()
         if not res:
             return False
@@ -247,6 +254,30 @@ class Router:
 
         return True
 
+    def open_password_change_page(self) -> bool:
+        for step in self.cfg["password_reset"]["steps"]:
+            logger.debug(f"Step {step}")
+
+            w = self._waiter(element=step)
+            if not w:
+                logger.error(f"Element {step['location']} was not found, skipping router...")
+                return False
+
+            try:
+                if step["type"] == "id":
+                    self.driver.find_element(By.ID, step["location"]).click()
+
+                elif step["type"] == "xpath":
+                    self.driver.find_element(By.XPATH, step["location"]).click()
+
+            except TimeoutException:
+                logger.error(f"Timed out waiting for step {step['location']}, skipping...")
+                return False
+
+            logger.debug(f"Step {step['type']} {step['xpath']} passed")
+
+        return True
+
     def set_dhcp_mode(self):
         if "check_dhcp_mode" in self.cfg["dns"]:
             w = self._waiter(element=self.cfg["dns"]["check_dhcp_mode"])
@@ -280,7 +311,8 @@ class Router:
         if not res:
             return False
 
-        for dns_idx in range(2):
+        dns_fields_num = len([k for k in self.cfg["dns"].keys() if k.startswith("dns_")])
+        for dns_idx in range(dns_fields_num):
             if self.cfg["dns"]["split_octets"]:
                 octets = self.dns_servers[dns_idx].split(".")
 
@@ -319,7 +351,7 @@ class Router:
                     octet_input.clear()
                     octet_input.send_keys(self.dns_servers[dns_idx])
 
-        sleep(1)
+        sleep(10)
         w = self._waiter(element=self.cfg["dns"]["submit"])
         if not w:
             return False
@@ -334,6 +366,54 @@ class Router:
         sleep(3)
         return True
 
+    def reset_password(self, password: str) -> bool:
+        logger.info(f"Resetting password")
+        res = self.open_main_page()
+        if not res:
+            return False
+
+        if not "basic" in self.cfg["login"]:
+            res = self.do_login()
+
+            if not res:
+                return False
+
+        res = self.open_password_change_page()
+        if not res:
+            return False
+
+        cfg = self.cfg["password_reset"]
+
+        for input_field in cfg["steps"]:
+            loc = input_field["location"]
+            w = self._waiter(element=input_field)
+            if not w:
+                return False
+
+            if input_field["type"] == "id":
+                password_input = self.driver.find_element(By.ID, loc)
+                password_input.send_keys(password)
+
+            elif input_field["type"] == "xpath":
+                password_input = self.driver.find_element(By.XPATH, loc)
+                password_input.send_keys(password)
+
+        sleep(1)
+        w = self._waiter(element=cfg["submit"])
+        if not w:
+            return False
+
+        if cfg["submit"]["type"] == "id":
+            self.driver.find_element(By.ID, cfg["submit"]["location"]).click()
+
+        elif cfg["submit"]["type"] == "xpath":
+            self.driver.find_element(By.XPATH, cfg["submit"]["location"]).click()
+
+        logger.info(f"Password has been updated")
+        sleep(3)
+
+        return True
+
 
 @cli.command()
 @click.option("-d", "--driver-path", type=click.Path(), help="Chromium driver path")
@@ -344,8 +424,9 @@ class Router:
 @click.option("--skip-header/--no-skip-header", default=True)
 @click.option("--debug/--no-debug", default=False)
 @click.option("--docker-runtime/--no-docker-runtime", default=False)
+@click.option("--new-password", help="Password will be updated, if specified")
 def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str, skip_header: bool, debug: bool,
-          docker_runtime: bool):
+          docker_runtime: bool, new_password: str):
     if docker_runtime:
         subprocess.Popen(["Xvfb"],
                          stdout=open("/dev/null", "w"),
@@ -370,9 +451,11 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
     srv = Service(driver_path)
     op = webdriver.ChromeOptions()
-    op.add_argument("--headless")
-    op.add_argument("--no-sandbox")
-    op.add_argument("--disable-dev-shm-usage")
+
+    if docker_runtime:
+        op.add_argument("--headless")
+        op.add_argument("--no-sandbox")
+        op.add_argument("--disable-dev-shm-usage")
 
     for idx, router_data in enumerate(routers_data):
         logger.info(f"Started {idx} router {router_data[0]} {router_data[5]}")
@@ -382,28 +465,41 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
             logger.warning(f"Model {model} for {router_data[0]} was not found in configured models, skipping ...")
             continue
 
-        l = len(router_data[4].split(":"))
         if ":" in router_data[4]:
             router_user, router_password = router_data[4].split(":")
         else:
             router_user = ""
             router_password = router_data[4]
 
+        if dns:
+            if "," in dns:
+                dns_servers = dns.split(",")
+            else:
+                dns_servers = dns
+        else:
+            dns_servers = []
         router = Router(
             cfg=cfg["routers"][group_model],
             router_ip=router_data[0],
             router_port=router_data[1],
             router_user=router_user,
             router_password=router_password,
-            dns_servers=dns.split(","),
+            dns_servers=dns_servers,
             driver_srv=srv,
             driver_options=op,
         )
 
-        try:
-            router.process()
-        except:
-            pass
+        if dns_servers:
+            try:
+                router.reset_dns()
+            except:
+                pass
+
+        if new_password:
+            try:
+                router.reset_password(password=new_password)
+            except:
+                pass
 
         del router
 
