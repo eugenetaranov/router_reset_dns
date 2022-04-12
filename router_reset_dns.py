@@ -437,8 +437,12 @@ class Router:
         submit_btn = Element(driver=self.driver, element=self.cfg["password_reset"]["form"]["submit"])
         submit_btn.click()
 
+        if "alert_confirm" in self.cfg["password_reset"] and self.cfg["password_reset"]["alert_confirm"]:
+            alert = self.driver.switch_to.alert
+            alert.accept()
+
         logger.info(f"Password has been updated")
-        sleep(3)
+        sleep(5)
 
         return True
 

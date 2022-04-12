@@ -504,3 +504,4 @@ routers:
         submit:
           type: xpath
           location: //input[@name='button']
+      alert_confirm: true

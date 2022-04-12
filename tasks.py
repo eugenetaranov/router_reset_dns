@@ -1,7 +1,7 @@
 from invoke import task
 
 DRIVER_PATH = "~/Downloads/chromedriver_mac64_m1/chromedriver"
-NEW_PASSWORD = "1112"
+NEW_PASSWORD = "1111"
 
 
 @task
