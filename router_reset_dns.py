@@ -308,9 +308,9 @@ class Router:
                     self.driver.switch_to.parent_frame()
 #                    fr = self.driver.findElementById(step["location"])
                     self.driver.switch_to.frame(step["location"])
-                    logger.debug(f"Switched to frame:"+ str(step["location"]))
+                    logger.debug(f"Switched to frame {step['location']}")
                 except NameError:
-                    logger.error(f"Can't switch to frame:  {step['location']}, skipping..."+str(NameError))
+                    logger.error(f"Can't switch to frame:  {step['location']}, skipping...{(NameError)}")
                     return False
             elif step["type"] == "xpath":
                 try:

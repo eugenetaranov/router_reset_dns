@@ -470,7 +470,60 @@ routers:
       submit:
         type: id
         location: btnApply
+  TP-LINK Archer C20 Router:
+    login:
+      username:
+        type: id
+        location: userName
+      password:
+        type: id
+        location: pcPassword
+      submit:
+        type: id
+        location: loginBtn
+    iframe: frame1 
+    steps:    
+    - type: id
+      location: menu_network
+    - type: frame
+      location: frame2    
+    - type: xpath
+      location: /html/body/div[1]/div/div/div/div[1]/p[1]/select/option[1]
+#/html/body/div[1]/div/div/div/p[3]/select/option[2]                
+#      value: staticIp   
+    - type: xpath
+      location: /html/body/div[1]/div/div/p[4]/input[1]
+    - type: frame
+      location: frame1       
+    - type: id 
+      location: menu_dhcp
+    - type: frame
+      location: frame2   
+    - type: xpath
+      location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
+      value: dhcp_enable
+ 
 
+    dns:
+      iframe: frame2
+      split_octets: false
+      check_dhcp_mode:
+        type: xpath
+        location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
+      update_dhcp_mode:
+        type: xpath
+        location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
+        value: 1
+      dns_1:
+        type: id
+        location: dnsserver1
+      dns_2:
+        type: id
+        location: dnsserver2
+      submit:
+        type: id
+        location: saveBtn
+        
   ASUS RT-G32:
     login:
       basic: true
