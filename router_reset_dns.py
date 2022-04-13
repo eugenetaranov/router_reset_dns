@@ -295,7 +295,23 @@ class Router:
                 except TimeoutException:
                     logger.error(f"Timed out waiting for step {step['location']}, skipping...")
                     return False
+                if "value" in step.keys():
+                    try:
+                        value_mode = self.driver.find_element(By.ID, step["location"])
+                        value_mode = Select(value_mode)
+                        value_mode.select_by_value(str(step["value"]))
+                    except TimeoutException:
+                        logger.error(f"Timed out waiting for step {step['location']}, skipping...")
 
+            if step["type"] =="frame":
+                try:
+                    self.driver.switch_to.parent_frame()
+#                    fr = self.driver.findElementById(step["location"])
+                    self.driver.switch_to.frame(step["location"])
+                    logger.debug(f"Switched to frame {step['location']}")
+                except NameError:
+                    logger.error(f"Can't switch to frame:  {step['location']}, skipping...{(NameError)}")
+                    return False
             elif step["type"] == "xpath":
                 try:
                     self.driver.find_element(By.XPATH, step["location"]).click()
@@ -308,6 +324,7 @@ class Router:
             logger.debug(f"Switched to parent frame")
 
         return True
+
 
     def open_password_change_page(self):
         for step in self.cfg["password_reset"]["steps"]:
