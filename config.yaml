@@ -34,7 +34,6 @@ models:
     - 'Airocon Netis Wireless Router, firmware'
     - 'Airocon F@st 1744, v2, firmware'
     - 'Airocon F@st 1704 RT, firmware'
-
     - Airocon
   SERCOMM_RV6699:
     - 'SERCOMM_RV6699'
@@ -54,6 +53,8 @@ models:
   TP-Link Archer C60:
     - 'Archer C60'
     - 'TP-Link Archer C60'
+  TP-LINK Archer C20 Router:
+    - TP-LINK Archer C20 Router
   D-Link DWR-921:
     - 'D-Link DWR-921, hardware: C3, firmware: 3.0.2'
     - 'D-Link DIR-825'
@@ -194,6 +195,29 @@ routers:
       submit:
         type: id
         location: Btn_Submit
+    password_reset:
+      steps:
+        - type: xpath
+          location: //a[@href='Advanced_OperationMode_Content.asp']
+        - type: xpath
+          location: (//a[contains(@href,'Content.asp')])[8]
+      form:
+        input:
+          - type: xpath
+            location: //input[@name='http_passwd2']
+            alert_confirm: true
+          - type: xpath
+            location: //input[@name='v_password2']
+        submit:
+          type: xpath
+          location: //input[@name='button']
+        alert_confirm: true
+      reboot:
+        steps:
+          - type: xpath
+            location: //a[@onclick='reboot();']
+        alert_confirm: true
+
   ZTE_F670:
     login:
       username:
@@ -376,9 +400,9 @@ routers:
         
   TP-Link Archer C60:
     login:
-#      username:
-#        type: id
-#        location: userName
+      username:
+        type: id
+        location: userName
       password:
         type: xpath
         location: '/html/body/div[1]/div[2]/div[1]/div[1]/div/form[3]/div[2]/div/div/div[1]/span[2]/input[1]'
@@ -407,7 +431,7 @@ routers:
       submit:
         type: id
         location: pppoe_conn_btn
- 
+
   D-Link DWR-921:
     login:
       username:
@@ -470,6 +494,7 @@ routers:
       submit:
         type: id
         location: btnApply
+
   TP-LINK Archer C20 Router:
     login:
       username:
@@ -489,8 +514,6 @@ routers:
       location: frame2    
     - type: xpath
       location: /html/body/div[1]/div/div/div/div[1]/p[1]/select/option[1]
-#/html/body/div[1]/div/div/div/p[3]/select/option[2]                
-#      value: staticIp   
     - type: xpath
       location: /html/body/div[1]/div/div/p[4]/input[1]
     - type: frame
@@ -502,8 +525,6 @@ routers:
     - type: xpath
       location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
       value: dhcp_enable
- 
-
     dns:
       iframe: frame2
       split_octets: false
@@ -523,7 +544,36 @@ routers:
       submit:
         type: id
         location: saveBtn
-        
+    password_reset:
+      goto:
+        iframe: frame1
+        steps:
+          - type: id
+            location: menu_tools
+          - type: id
+            location: menu_mcl
+      form:
+        iframe: frame2
+        input:
+          current_username:
+            type: id
+            location: curName
+          current_password:
+            type: id
+            location: curPwd
+          new_username:
+            type: id
+            location: newName
+          new_password:
+            type: id
+            location: newPwd
+          new_password_confirm:
+            type: id
+            location: cfmPwd
+        submit:
+          type: xpath
+          location: //input[contains(@class,'save')]
+
   ASUS RT-G32:
     login:
       basic: true

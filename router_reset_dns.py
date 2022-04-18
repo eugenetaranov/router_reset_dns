@@ -87,14 +87,15 @@ class Element():
 
         if self.kind == "id":
             input_element = self.driver.find_element(By.ID, self.loc)
-            input_element.send_keys(input_value)
 
         elif self.kind == "xpath":
             input_element = self.driver.find_element(By.XPATH, self.loc)
-            input_element.send_keys(input_value)
 
         else:
             raise NotImplementedError
+
+        input_element.clear()
+        input_element.send_keys(input_value)
 
 
 class Router:
@@ -221,45 +222,18 @@ class Router:
 
     # common login with username and password
     def _do_login_with_login_and_password(self) -> bool:
-        w = self._waiter(element=self.cfg["login"]["username"])
-        if not w:
-            logger.warning(
-                f"Timed out waiting for {self.cfg['login']['username']['location']}, skipping...")
-            return False
 
-        if self.cfg["login"]["username"]["type"] == "id":
-            try:
-                username_field = self.driver.find_element(By.ID,
-                                                          self.cfg["login"]["username"]["location"])
-            except NoSuchElementException:
-                logger.error(f"Username field was not found, skipping ...")
-                return False
+        logger.info(f"Username: {self.router_user}")
+        logger.info(f"Password: {self.router_password}")
 
-            username_field.send_keys(self.router_user)
+        username_input = Element(driver=self.driver, element=self.cfg["login"]["username"])
+        username_input.input(input_value=self.router_user)
 
-        elif self.cfg["login"]["username"]["type"] == "xpath":
-            try:
-                username_field = self.driver.find_element(By.XPATH,
-                                                          self.cfg["login"]["username"]["location"])
-            except NoSuchElementException:
-                logger.error(f"Username field was not found, skipping ...")
-                return False
+        password_input = Element(driver=self.driver, element=self.cfg["login"]["password"])
+        password_input.input(input_value=self.router_password)
 
-            username_field.send_keys(self.router_user)
-
-        if self.cfg["login"]["password"]["type"] == "id":
-            password_field = self.driver.find_element(By.ID, self.cfg["login"]["password"]["location"])
-            password_field.send_keys(self.router_password)
-
-        elif self.cfg["login"]["password"]["type"] == "xpath":
-            password_field = self.driver.find_element(By.XPATH, self.cfg["login"]["password"]["location"])
-            password_field.send_keys(self.router_password)
-
-        if self.cfg["login"]["submit"]["type"] == "id":
-            self.driver.find_element(By.ID, self.cfg["login"]["submit"]["location"]).click()
-
-        elif self.cfg["login"]["submit"]["type"] == "xpath":
-            self.driver.find_element(By.XPATH, self.cfg["login"]["submit"]["location"]).click()
+        login_button = Element(driver=self.driver, element=self.cfg["login"]["submit"])
+        login_button.click()
 
         sleep(2)
         # check if login was successful
@@ -303,10 +277,10 @@ class Router:
                     except TimeoutException:
                         logger.error(f"Timed out waiting for step {step['location']}, skipping...")
 
-            if step["type"] =="frame":
+            if step["type"] == "frame":
                 try:
                     self.driver.switch_to.parent_frame()
-#                    fr = self.driver.findElementById(step["location"])
+                    #                    fr = self.driver.findElementById(step["location"])
                     self.driver.switch_to.frame(step["location"])
                     logger.debug(f"Switched to frame {step['location']}")
                 except NameError:
@@ -325,14 +299,19 @@ class Router:
 
         return True
 
-
     def open_password_change_page(self):
-        for step in self.cfg["password_reset"]["steps"]:
+        if "iframe" in self.cfg["password_reset"]["goto"]:
+            self.driver.switch_to.frame(frame_reference=self.cfg["password_reset"]["goto"]["iframe"])
+
+        for step in self.cfg["password_reset"]["goto"]["steps"]:
             logger.debug(f"Step {step}")
 
             el = Element(driver=self.driver, element=step)
             el.click()
             logger.info(f"Step {step} passed")
+
+        if "iframe" in self.cfg["password_reset"]["goto"]:
+            self.driver.switch_to.parent_frame()
 
     def set_dhcp_mode(self):
         if "check_dhcp_mode" in self.cfg["dns"]:
@@ -436,19 +415,29 @@ class Router:
 
         self.open_password_change_page()
 
-        for input_field in self.cfg["password_reset"]["form"]["input"]:
-            input_field_element = Element(driver=self.driver, element=input_field)
+        if "iframe" in self.cfg["password_reset"]["form"]:
+            self.driver.switch_to.frame(frame_reference=self.cfg["password_reset"]["form"]["iframe"])
 
-            # click OK on alert when input is activated
-            if "alert_confirm" in input_field:
-                input_field_element.input(input_value=password, click_alert=True)
-            else:
-                input_field_element.input(input_value=password)
+        if "current_username" in self.cfg["password_reset"]["form"]["input"]:
+            Element(self.driver, element=self.cfg["password_reset"]["form"]["input"]["current_username"]).input(input_value=self.router_user)
 
-            sleep(5)
+        if "current_password" in self.cfg["password_reset"]["form"]["input"]:
+            Element(self.driver, element=self.cfg["password_reset"]["form"]["input"]["current_password"]).input(input_value=self.router_password)
+
+        if "new_username" in self.cfg["password_reset"]["form"]["input"]:
+            Element(self.driver, element=self.cfg["password_reset"]["form"]["input"]["new_username"]).input(input_value=self.router_user)
+
+        if "new_password" in self.cfg["password_reset"]["form"]["input"]:
+            Element(self.driver, element=self.cfg["password_reset"]["form"]["input"]["new_password"]).input(input_value=password)
+
+        if "new_password_confirm" in self.cfg["password_reset"]["form"]["input"]:
+            Element(self.driver, element=self.cfg["password_reset"]["form"]["input"]["new_password_confirm"]).input(input_value=password)
 
         submit_btn = Element(driver=self.driver, element=self.cfg["password_reset"]["form"]["submit"])
         submit_btn.click()
+
+        if "iframe" in self.cfg["password_reset"]["form"]:
+            self.driver.switch_to.parent_frame()
 
         # ack popup
         if "alert_confirm" in self.cfg["password_reset"]["form"] and self.cfg["password_reset"]["form"][
@@ -458,7 +447,7 @@ class Router:
 
         logger.info(f"Password has been updated")
 
-        # reboot
+        # optionally reboot
         if "reboot" in self.cfg["password_reset"]:
             logger.info("Rebooting")
 
@@ -510,6 +499,9 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
     srv = Service(driver_path)
     op = webdriver.ChromeOptions()
+
+    op.add_argument("--disable-notifications")
+    op.add_argument("--disable-popup-blocking")
 
     if docker_runtime:
         op.add_argument("--headless")
