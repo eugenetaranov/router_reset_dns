@@ -1,0 +1,37 @@
+from invoke import task
+
+DRIVER_PATH = "/usr/bin/chromedriver"
+NEW_PASSWORD = "1111"
+
+
+@task
+def test_password_change(ctx, start_from=0):
+    if start_from > 2:
+        start_from = start_from - 2
+
+    cmd = f"./router_reset_dns.py reset \
+  --driver-path {DRIVER_PATH} \
+  --routers routers_test_all.csv \
+  --new-password {NEW_PASSWORD} \
+  --config config.yaml \
+  --start-from {start_from} \
+  --debug"
+
+    print(cmd)
+    ctx.run(cmd)\
+
+@task
+def test_dns_change(ctx, start_from=0):
+    if start_from > 2:
+        start_from = start_from - 2
+
+    cmd = f"./router_reset_dns.py reset \
+  --driver-path {DRIVER_PATH} \
+  --dns 8.8.8.8,1.1.1.1 \
+  --routers routers_test_all.csv \
+  --config config.yaml \
+  --start-from {start_from} \
+  --debug"
+
+    print(cmd)
+    ctx.run(cmd)

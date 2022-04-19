@@ -36,3 +36,8 @@ Optinally, you can set `--start-from` which effectively skips any preceeding ite
 ```bash
 ./docker_run.sh -c config.yaml -r routers.csv -d 8.8.8.8,1.1.1.1
 ```
+
+#### Password reset
+```shell
+./router_reset_dns.py reset --driver-path ~/Downloads/chromedriver --routers routers.csv --new-password 1111 --config config.yaml --start-from 0 --debug
+```

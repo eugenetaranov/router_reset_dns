@@ -1,9 +1,13 @@
 ---
 models:
+  Tenda:
+    - 'Tenda 11N Wireless Router, hardware: V1.0, firmware: V5.07.64_en'
+  ASUS RT-G32:
+    - ASUS RT-G32 Rev.C1
   ZTE_ZXHN_H298A:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
-    - 'ZTE ZXHN H298A V1.1'
+    - ZTE ZXHN H298A V1.1
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROS_T20'
   ZTE_ZXHN_H108N:
     - 'ZTE ZXHN H108N, hardware: 1.2, firmware: 2.5.5_RU8T10'
@@ -32,7 +36,6 @@ models:
     - 'Airocon Netis Wireless Router, firmware'
     - 'Airocon F@st 1744, v2, firmware'
     - 'Airocon F@st 1704 RT, firmware'
-
     - Airocon
   SERCOMM_RV6699:
     - 'SERCOMM_RV6699'
@@ -52,6 +55,8 @@ models:
   TP-Link Archer C60:
     - 'Archer C60'
     - 'TP-Link Archer C60'
+  TP-LINK Archer C20 Router:
+    - TP-LINK Archer C20 Router
   D-Link DWR-921:
     - 'D-Link DWR-921, hardware: C3, firmware: 3.0.2'
     - 'D-Link DIR-825'
@@ -192,6 +197,29 @@ routers:
       submit:
         type: id
         location: Btn_Submit
+    password_reset:
+      steps:
+        - type: xpath
+          location: //a[@href='Advanced_OperationMode_Content.asp']
+        - type: xpath
+          location: (//a[contains(@href,'Content.asp')])[8]
+      form:
+        input:
+          - type: xpath
+            location: //input[@name='http_passwd2']
+            alert_confirm: true
+          - type: xpath
+            location: //input[@name='v_password2']
+        submit:
+          type: xpath
+          location: //input[@name='button']
+        alert_confirm: true
+      reboot:
+        steps:
+          - type: xpath
+            location: //a[@onclick='reboot();']
+        alert_confirm: true
+
   ZTE_F670:
     login:
       username:
@@ -374,9 +402,9 @@ routers:
         
   TP-Link Archer C60:
     login:
-#      username:
-#        type: id
-#        location: userName
+      username:
+        type: id
+        location: userName
       password:
         type: xpath
         location: '/html/body/div[1]/div[2]/div[1]/div[1]/div/form[3]/div[2]/div/div/div[1]/span[2]/input[1]'
@@ -405,7 +433,7 @@ routers:
       submit:
         type: id
         location: pppoe_conn_btn
- 
+
   D-Link DWR-921:
     login:
       username:
@@ -468,4 +496,149 @@ routers:
       submit:
         type: id
         location: btnApply
-        
+
+  TP-LINK Archer C20 Router:
+    login:
+      username:
+        type: id
+        location: userName
+      password:
+        type: id
+        location: pcPassword
+      submit:
+        type: id
+        location: loginBtn
+    iframe: frame1 
+    steps:    
+    - type: id
+      location: menu_network
+    - type: frame
+      location: frame2    
+    - type: xpath
+      location: /html/body/div[1]/div/div/div/div[1]/p[1]/select/option[1]
+    - type: xpath
+      location: /html/body/div[1]/div/div/p[4]/input[1]
+    - type: frame
+      location: frame1       
+    - type: id 
+      location: menu_dhcp
+    - type: frame
+      location: frame2   
+    - type: xpath
+      location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
+      value: dhcp_enable
+    dns:
+      iframe: frame2
+      split_octets: false
+      check_dhcp_mode:
+        type: xpath
+        location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
+      update_dhcp_mode:
+        type: xpath
+        location: '/html/body/div[1]/div/div/div/p[2]/input[2]'
+        value: 1
+      dns_1:
+        type: id
+        location: dnsserver1
+      dns_2:
+        type: id
+        location: dnsserver2
+      submit:
+        type: id
+        location: saveBtn
+    password_reset:
+      goto:
+        iframe: frame1
+        steps:
+          - type: id
+            location: menu_tools
+          - type: id
+            location: menu_mcl
+      form:
+        iframe: frame2
+        input:
+          current_username:
+            type: id
+            location: curName
+          current_password:
+            type: id
+            location: curPwd
+          new_username:
+            type: id
+            location: newName
+          new_password:
+            type: id
+            location: newPwd
+          new_password_confirm:
+            type: id
+            location: cfmPwd
+        submit:
+          type: xpath
+          location: //input[contains(@class,'save')]
+
+  ASUS RT-G32:
+    login:
+      basic: true
+    steps:
+    - type: xpath
+      location: '/html/body/table/tbody/tr/td[2]/div[2]/div[2]/a'
+    - type: xpath
+      location: '/html/body/form/table/tbody/tr/td[2]/div[2]/div[2]'
+    - type: xpath
+      location: '/html/body/form/table/tbody/tr/td[3]/div/table/tbody/tr/td[2]/a'
+    dns:
+      split_octets: false
+      dns_1:
+        type: xpath
+        location: '//*[@id="ruleForm"]/table/tbody/tr/td[3]/table/tbody/tr/td[1]/table/tbody[2]/tr[2]/td/table/tbody/tr[1]/td/input'
+      submit:
+        type: xpath
+        location: '//*[@id="ruleForm"]/table/tbody/tr/td[3]/table/tbody/tr/td[1]/table/tbody[2]/tr[3]/td/table/tbody/tr[5]/td/input'
+    password_reset:
+      steps:
+        - type: xpath
+          location: //a[@href='Advanced_OperationMode_Content.asp']
+        - type: xpath
+          location: (//a[contains(@href,'Content.asp')])[8]
+      form:
+        input:
+          - type: xpath
+            location: //input[@name='http_passwd2']
+            alert_confirm: true
+          - type: xpath
+            location: //input[@name='v_password2']
+        submit:
+          type: xpath
+          location: //input[@name='button']
+        alert_confirm: true
+      reboot:
+        steps:
+          - type: xpath
+            location: //a[@onclick='reboot();']
+        alert_confirm: true
+
+  Tenda:
+      login:
+        password:
+          type: xpath
+          location: //input[@type='password']
+        submit:
+          type: xpath
+          location: //a[@class='btn btn-link']
+      steps:
+      - type: xpath
+        location: //a[@href='advance.asp']
+      - type: xpath
+        location: //a[@href='wan_dns.asp']
+      dns:
+        iframe: main_iframe
+        split_octets: false
+        dns_1:
+          type: xpath
+          location: //input[@name='DS1']
+        dns_2:
+          type: xpath
+          location: //input[@name='DS2']
+        submit:
+          type: xpath
+          location: //input[@value='OK']
