@@ -1,11 +1,13 @@
 ---
 models:
-  'ASUS RT-G32':
+  Tenda:
+    - 'Tenda 11N Wireless Router, hardware: V1.0, firmware: V5.07.64_en'
+  ASUS RT-G32:
     - ASUS RT-G32 Rev.C1
   ZTE_ZXHN_H298A:
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROST16'
     - ZTE_ZXHN_H298A
-    - 'ZTE ZXHN H298A V1.1'
+    - ZTE ZXHN H298A V1.1
     - 'ZTE ZXHN H298A V1.1, firmware: V1.1.20_ROS_T20'
   ZTE_ZXHN_H108N:
     - 'ZTE ZXHN H108N, hardware: 1.2, firmware: 2.5.5_RU8T10'
@@ -615,3 +617,28 @@ routers:
             location: //a[@onclick='reboot();']
         alert_confirm: true
 
+  Tenda:
+      login:
+        password:
+          type: xpath
+          location: //input[@type='password']
+        submit:
+          type: xpath
+          location: //a[@class='btn btn-link']
+      steps:
+      - type: xpath
+        location: //a[@href='advance.asp']
+      - type: xpath
+        location: //a[@href='wan_dns.asp']
+      dns:
+        iframe: main_iframe
+        split_octets: false
+        dns_1:
+          type: xpath
+          location: //input[@name='DS1']
+        dns_2:
+          type: xpath
+          location: //input[@name='DS2']
+        submit:
+          type: xpath
+          location: //input[@value='OK']
