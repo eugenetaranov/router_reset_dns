@@ -18,6 +18,8 @@ import subprocess
 import signal
 
 
+VERSION = "0.1"
+
 @click.group()
 def cli():
     pass
@@ -494,6 +496,10 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
 
     with open(config, "r") as f:
         cfg = yaml.safe_load(f)
+
+    if str(cfg.get("version", "not_set")) != VERSION:
+        logger.error(f"Config file version \"{cfg.get('version', 'not_set')}\" is not compatible with script version \"{VERSION}\"")
+        exit(1)
 
     routers_data = routers_data[start_from:]
     if debug:
