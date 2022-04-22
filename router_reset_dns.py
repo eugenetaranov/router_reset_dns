@@ -198,25 +198,22 @@ class Router:
 
     # password only login
     def _do_login_with_password_only(self) -> bool:
+        if "iframe" in self.cfg["login"]:
+            self.driver.switch_to.frame(self.cfg["login"]["iframe"])
+
         w = self._waiter(element=self.cfg["login"]["password"])
         if not w:
             logger.warning(
                 f"Timed out waiting for {self.cfg['login']['password']['location']}, skipping...")
             return False
 
-        if self.cfg["login"]["password"]["type"] == "id":
-            password_field = self.driver.find_element(By.ID, self.cfg["login"]["password"]["location"])
-            password_field.send_keys(self.router_password)
+        password_input = Element(driver=self.driver, element=self.cfg["login"]["password"])
+        password_input.input(input_value=self.router_password)
 
-        elif self.cfg["login"]["password"]["type"] == "xpath":
-            password_field = self.driver.find_element(By.XPATH, self.cfg["login"]["password"]["location"])
-            password_field.send_keys(self.router_password)
+        Element(driver=self.driver, element=self.cfg["login"]["submit"]).click()
 
-        if self.cfg["login"]["submit"]["type"] == "id":
-            self.driver.find_element(By.ID, self.cfg["login"]["submit"]["location"]).click()
-
-        elif self.cfg["login"]["submit"]["type"] == "xpath":
-            self.driver.find_element(By.XPATH, self.cfg["login"]["submit"]["location"]).click()
+        if "iframe" in self.cfg["login"]:
+            self.driver.switch_to.parent_frame()
 
         return True
 
@@ -226,14 +223,16 @@ class Router:
         logger.info(f"Username: {self.router_user}")
         logger.info(f"Password: {self.router_password}")
 
+        if "iframe" in self.cfg["login"]:
+            self.driver.switch_to.frame(self.cfg["login"]["iframe"])
+
         username_input = Element(driver=self.driver, element=self.cfg["login"]["username"])
         username_input.input(input_value=self.router_user)
 
         password_input = Element(driver=self.driver, element=self.cfg["login"]["password"])
         password_input.input(input_value=self.router_password)
 
-        login_button = Element(driver=self.driver, element=self.cfg["login"]["submit"])
-        login_button.click()
+        Element(driver=self.driver, element=self.cfg["login"]["submit"]).click()
 
         sleep(2)
         # check if login was successful
@@ -248,6 +247,9 @@ class Router:
 
             if "iframe" in self.cfg["login"].keys():
                 self.driver.switch_to.parent_frame()
+
+        if "iframe" in self.cfg["login"]:
+            self.driver.switch_to.parent_frame()
 
         logger.info(f"Logged in")
         return True
@@ -529,6 +531,7 @@ def reset(driver_path: str, routers: str, dns: str, start_from: int, config: str
                 dns_servers = dns
         else:
             dns_servers = []
+
         router = Router(
             cfg=cfg["routers"][group_model],
             router_ip=router_data[0],

@@ -20,6 +20,8 @@ models:
     - ZTE F660
   ZTE_F670:
     - ZTE F670
+  'D-Link DIR-140L':
+    - 'D-Link DIR-140L, firmware: 1.01RU'
   Airocon:
     - 'Airocon UR-344AN4G, firmware: V2.1.4'
     - 'Airocon UR-344AN4G, firmware: V2.1.3'
@@ -643,3 +645,29 @@ routers:
           type: xpath
           location: //input[@value='OK']
           wait: 10
+
+  D-Link DIR-140L:
+    login:
+      iframe: main
+      password:
+        type: xpath
+        location: //input[@type='password']
+      submit:
+        type: xpath
+        location: //input[@type='submit']
+    steps:
+    - type: xpath
+      location: //a[contains(.,'Setup')]
+    dns:
+      iframe: main_iframe
+      split_octets: false
+      dns_1:
+        type: xpath
+        location: //input[@name='DS1']
+      dns_2:
+        type: xpath
+        location: //input[@name='DS2']
+      submit:
+        type: xpath
+        location: //input[@value='OK']
+        wait: 10
