@@ -386,19 +386,19 @@ class Router:
                     octet_input.clear()
                     octet_input.send_keys(self.dns_servers[dns_idx])
 
-        sleep(10)
         w = self._waiter(element=self.cfg["dns"]["submit"])
         if not w:
             return False
 
-        if self.cfg["dns"]["submit"]["type"] == "id":
-            self.driver.find_element(By.ID, self.cfg["dns"]["submit"]["location"]).click()
+        Element(driver=self.driver, element=self.cfg["dns"]["submit"]).click()
+        logger.info("DNS settings were updated")
 
-        elif self.cfg["dns"]["submit"]["type"] == "xpath":
-            self.driver.find_element(By.XPATH, self.cfg["dns"]["submit"]["location"]).click()
+        if "wait" in self.cfg["dns"]["submit"]:
+            logger.info(f"Waiting {self.cfg['dns']['submit']['wait']} seconds")
+            sleep(self.cfg["dns"]["submit"]["wait"])
+        else:
+            sleep(5)
 
-        logger.info(f"DNS settings were updated")
-        sleep(3)
         return True
 
     def reset_password(self, password: str) -> bool:

@@ -642,3 +642,4 @@ routers:
         submit:
           type: xpath
           location: //input[@value='OK']
+          wait: 10
